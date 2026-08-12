@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Discord
-    url: https://meteorclient.com/discord
-    about: Join our discord for faster support on smaller issues.
+  - name: Discussions
+    url: https://github.com/Peaks2000/peakeor-client/discussions
+    about: Ask general questions and discuss Peakeor.

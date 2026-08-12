@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "package": "peakeordevelopment.peakeorclient.mixin.viafabricplus",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "peakeordevelopment.peakeorclient.MixinPlugin",
+  "client": [
+    "GeneralSettingsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

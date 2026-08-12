@@ -16,11 +16,11 @@ base {
 
 repositories {
     maven {
-        name = "meteor-maven"
+        name = "upstream-maven"
         url = uri("https://maven.meteordev.org/releases")
     }
     maven {
-        name = "meteor-maven-snapshots"
+        name = "upstream-maven-snapshots"
         url = uri("https://maven.meteordev.org/snapshots")
     }
     maven {
@@ -131,7 +131,7 @@ listOf("api", "implementation", "include").forEach { configName ->
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/meteor-client.classtweaker")
+    accessWidenerPath = file("src/main/resources/peakeor-client.classtweaker")
 }
 
 fun toMinecraftCompat(version: String): String {
@@ -197,7 +197,7 @@ tasks {
         from(launcher.output)
 
         manifest {
-            attributes["Main-Class"] = "meteordevelopment.meteorclient.Main"
+            attributes["Main-Class"] = "peakeordevelopment.peakeorclient.Main"
         }
     }
 
@@ -229,19 +229,19 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifactId = "meteor-client"
+            artifactId = "peakeor-client"
 
             version = "${libs.versions.minecraft.get()}-SNAPSHOT"
         }
     }
 
     repositories {
-        maven("https://maven.meteordev.org/snapshots") {
-            name = "meteor-maven"
+        maven("https://maven.pkg.github.com/Peaks2000/peakeor-client") {
+            name = "GitHubPackages"
 
             credentials {
-                username = System.getenv("MAVEN_METEOR_ALIAS")
-                password = System.getenv("MAVEN_METEOR_TOKEN")
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
 
             authentication {

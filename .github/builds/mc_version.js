@@ -1,5 +1,5 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Peakeor Client distribution (https://github.com/Peaks2000/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 

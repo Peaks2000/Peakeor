@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "name": "Meteor Client",
-  "id": "meteor-client",
+  "name": "Peakeor Client",
+  "id": "peakeor-client",
   "version": "${version}",
   "description": "Based utility mod.",
   "authors": [
@@ -10,42 +10,36 @@
     "seasnail"
   ],
   "contact": {
-    "homepage": "https://meteorclient.com",
-    "issues": "https://github.com/MeteorDevelopment/meteor-client/issues",
-    "sources": "https://github.com/MeteorDevelopment/meteor-client",
-    "discord": "https://meteorclient.com/discord"
+    "homepage": "https://github.com/Peaks2000/peakeor-client",
+    "issues": "https://github.com/Peaks2000/peakeor-client/issues",
+    "sources": "https://github.com/Peaks2000/peakeor-client"
   },
   "license": "GPL-3.0",
-  "icon": "assets/meteor-client/icon.png",
+  "icon": "assets/peakeor-client/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": [
-      "meteordevelopment.meteorclient.MeteorClient"
+      "peakeordevelopment.peakeorclient.PeakeorClient"
     ],
     "modmenu": [
-      "meteordevelopment.meteorclient.modintegration.ModMenuIntegration"
+      "peakeordevelopment.peakeorclient.modintegration.ModMenuIntegration"
     ]
   },
   "mixins": [
-    "meteor-client.mixins.json",
-    "meteor-client-baritone.mixins.json",
-    "meteor-client-indigo.mixins.json",
-    "meteor-client-sodium.mixins.json",
-    "meteor-client-lithium.mixins.json",
-    "meteor-client-viafabricplus.mixins.json"
+    "peakeor-client.mixins.json",
+    "peakeor-client-baritone.mixins.json",
+    "peakeor-client-indigo.mixins.json",
+    "peakeor-client-sodium.mixins.json",
+    "peakeor-client-lithium.mixins.json",
+    "peakeor-client-viafabricplus.mixins.json"
   ],
-  "accessWidener": "meteor-client.classtweaker",
+  "accessWidener": "peakeor-client.classtweaker",
   "custom": {
-    "meteor-client:build_number": "${build_number}",
-    "meteor-client:color": "145,61,226",
-    "meteor-client:commit": "${commit}",
-    "modmenu": {
-      "links": {
-        "modmenu.discord": "https://meteorclient.com/discord"
-      }
-    },
+    "peakeor-client:build_number": "${build_number}",
+    "peakeor-client:color": "242,140,40",
+    "peakeor-client:commit": "${commit}",
     "badoptimizations:cache_hooks": {
-      "lightmap": "meteordevelopment.meteorclient.modintegration.BadOptimizationsHook"
+      "lightmap": "peakeordevelopment.peakeorclient.modintegration.BadOptimizationsHook"
     }
   },
   "depends": {

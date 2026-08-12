@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "package": "peakeordevelopment.peakeorclient.mixin.indigo",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "peakeordevelopment.peakeorclient.MixinPlugin",
+  "client": [
+    "AltModelBlockRendererImplMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

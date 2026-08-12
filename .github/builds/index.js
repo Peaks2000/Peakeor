@@ -1,5 +1,5 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Peakeor Client distribution (https://github.com/Peaks2000/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
@@ -26,23 +26,23 @@ function sendDiscordWebhook() {
             for (let i in res.commits) {
                 let commit = res.commits[i];
 
-                changes += "\n- [`" + commit.sha.substring(0, 7) + "`](https://github.com/MeteorDevelopment/meteor-client/commit/" + commit.sha + ") *" + commit.commit.message + "*";
+                changes += "\n- [`" + commit.sha.substring(0, 7) + "`](https://github.com/Peaks2000/peakeor-client/commit/" + commit.sha + ") *" + commit.commit.message + "*";
                 hasChanges = true;
             }
             if (hasChanges) description += changes;
 
             if (success) {
-                description += "\n\nVisit our [website](https://meteorclient.com) for download";
+                description += "\n\nVisit our [website](https://peakeorclient.com) for download";
             }
 
             const webhook = {
                 username: "Builds",
-                avatar_url: "https://meteorclient.com/icon.png",
+                avatar_url: "https://peakeorclient.com/icon.png",
                 embeds: [
                     {
-                        title: "Meteor Client " + mcVersion + " build #" + buildNumber,
+                        title: "Peakeor Client " + mcVersion + " build #" + buildNumber,
                         description: description,
-                        url: "https://meteorclient.com",
+                        url: "https://peakeorclient.com",
                             color: success ? 2672680 : 13117480
                     }
                 ]
@@ -59,7 +59,7 @@ function sendDiscordWebhook() {
 }
 
 if (success) {
-    fetch("https://meteorclient.com/api/recheckMaven", {
+    fetch("https://peakeorclient.com/api/recheckMaven", {
         method: "POST",
         headers: {
             "Authorization": process.env.SERVER_TOKEN

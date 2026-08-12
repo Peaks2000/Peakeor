@@ -1,0 +1,13 @@
+{
+  "required": false,
+  "package": "peakeordevelopment.peakeorclient.mixin.lithium",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "peakeordevelopment.peakeorclient.MixinPlugin",
+  "client": [
+    "ChunkAwareBlockCollisionSweeperMixin",
+    "LithiumEntityCollisionsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
