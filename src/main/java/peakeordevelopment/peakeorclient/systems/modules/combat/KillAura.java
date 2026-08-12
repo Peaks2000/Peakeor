@@ -64,9 +64,8 @@ public class KillAura extends Module {
 
     private final Setting<List<Item>> weapons = sgGeneral.add(new ItemListSetting.Builder()
         .name("selected-weapon-types")
-        .description("Which types of weapons to attack with (if you select the diamond sword, any type of sword may be used to attack).")
+        .description("Items Kill Aura may attack with. Diamond tools represent their entire tool type; other entries match the exact item.")
         .defaultValue(Items.DIAMOND_SWORD, Items.DIAMOND_AXE, Items.TRIDENT)
-        .filter(FILTER::contains)
         .visible(() -> attackWhenHolding.get() == AttackItems.Weapons)
         .build()
     );
@@ -262,7 +261,6 @@ public class KillAura extends Module {
         .build()
     );
 
-    private final static Set<Item> FILTER = Set.of(Items.DIAMOND_SWORD, Items.DIAMOND_AXE, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_HOE, Items.MACE, Items.DIAMOND_SPEAR, Items.TRIDENT);
     private final List<Entity> targets = new ArrayList<>();
     private int switchTimer, hitTimer;
     private boolean wasPathing = false;
@@ -473,6 +471,7 @@ public class KillAura extends Module {
     private boolean acceptableWeapon(ItemStack stack) {
         if (shouldShieldBreak()) return stack.getItem() instanceof AxeItem;
         if (attackWhenHolding.get() == AttackItems.All) return true;
+        if (weapons.get().contains(stack.getItem())) return true;
 
         if (weapons.get().contains(Items.DIAMOND_SWORD) && stack.is(ItemTags.SWORDS)) return true;
         if (weapons.get().contains(Items.DIAMOND_AXE) && stack.is(ItemTags.AXES)) return true;
