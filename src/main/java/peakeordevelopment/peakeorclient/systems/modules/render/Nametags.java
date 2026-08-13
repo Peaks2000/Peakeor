@@ -39,6 +39,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.minecart.MinecartTNT;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -241,10 +242,25 @@ public class Nametags extends Module {
 
     //Items
 
+    private final Setting<Boolean> itemNametags = sgItems.add(new BoolSetting.Builder()
+        .name("item-nametags")
+        .description("Displays nametags for dropped items and items in item frames.")
+        .defaultValue(true)
+        .build()
+    );
+
+    private final Setting<List<Item>> ignoredItems = sgItems.add(new ItemListSetting.Builder()
+        .name("ignored-items")
+        .description("Items that will not have a nametag.")
+        .visible(itemNametags::get)
+        .build()
+    );
+
     private final Setting<Boolean> itemCount = sgItems.add(new BoolSetting.Builder()
         .name("show-count")
         .description("Displays the number of items in the stack.")
         .defaultValue(true)
+        .visible(itemNametags::get)
         .build()
     );
 
@@ -336,6 +352,7 @@ public class Nametags extends Module {
         for (Entity entity : mc.level.entitiesForRendering()) {
             EntityType<?> type = entity.getType();
             if (!entities.get().contains(type)) continue;
+            if (isIgnoredItem(entity)) continue;
 
             if (type == EntityTypes.PLAYER) {
                 if ((ignoreSelf.get() || (freecamNotActive && notThirdPerson)) && entity == mc.player) continue;
@@ -349,6 +366,16 @@ public class Nametags extends Module {
         }
 
         entityList.sort(Comparator.comparing(e -> e.distanceToSqr(cameraPos)));
+    }
+
+    private boolean isIgnoredItem(Entity entity) {
+        ItemStack stack = switch (entity) {
+            case ItemEntity item -> item.getItem();
+            case ItemFrame itemFrame -> itemFrame.getItem();
+            default -> null;
+        };
+
+        return stack != null && (!itemNametags.get() || ignoredItems.get().contains(stack.getItem()));
     }
 
     @EventHandler
