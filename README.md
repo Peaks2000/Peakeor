@@ -1,6 +1,6 @@
 
 <p align="center">
-<img src="src/main/resources/assets/peakeor-client/logo-orange-v2.png" alt="" width="15%"/>
+<img src="src/main/resources/assets/peakeor-client/" alt="" width="15%"/>
 </p>
 
 <h1 align="center">Peakeor</h1>
