@@ -5,18 +5,26 @@
 
 package peakeordevelopment.peakeorclient.mixin;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.mojang.blaze3d.vertex.PoseStack;
 import peakeordevelopment.peakeorclient.systems.modules.Modules;
 import peakeordevelopment.peakeorclient.systems.modules.render.NoRender;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.AbstractSignRenderer;
+import net.minecraft.client.renderer.blockentity.state.SignRenderState;
+import net.minecraft.world.level.block.entity.SignText;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractSignRenderer.class)
 public abstract class AbstractSignRendererMixin {
-    @ModifyExpressionValue(method = "submitSignText", at = @At(value = "CONSTANT", args = {"intValue=4", "ordinal=1"}))
-    private int loopTextLengthProxy(int i) {
-        if (Modules.get().get(NoRender.class).noSignText()) return 0;
-        return i;
+    @Inject(method = "submitSignText", at = @At("HEAD"), cancellable = true)
+    private void onSubmitSignText(SignRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, SignText signText, CallbackInfo ci) {
+        Modules modules = Modules.get();
+        if (modules == null) return;
+
+        NoRender noRender = modules.get(NoRender.class);
+        if (noRender != null && noRender.noSignText()) ci.cancel();
     }
 }

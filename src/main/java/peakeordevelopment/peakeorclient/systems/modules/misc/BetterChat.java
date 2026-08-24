@@ -416,7 +416,7 @@ public class BetterChat extends Module {
     }
 
     static {
-        registerCustomHead("[Peakeor]", PeakeorClient.identifier("textures/icons/chat/peakeor-orange-v2.png"));
+        registerCustomHead("[Peakeor]", PeakeorClient.identifier("textures/icons/chat/peakeor-orange-classic-v3.png"));
         registerCustomHead("[Baritone]", PeakeorClient.identifier("textures/icons/chat/baritone.png"));
     }
 

@@ -48,6 +48,8 @@ public class AutoSign extends Module {
     @Override
     public void onDeactivate() {
         text = null;
+        queue.clear();
+        timer = 0;
     }
 
     @EventHandler
@@ -81,9 +83,10 @@ public class AutoSign extends Module {
     private void onOpenScreen(OpenScreenEvent event) {
         if (!(event.screen instanceof AbstractSignEditScreen) || text == null) return;
 
-        SignBlockEntity sign = ((AbstractSignEditScreenAccessor) event.screen).peakeor$getSign();
+        AbstractSignEditScreenAccessor screen = (AbstractSignEditScreenAccessor) event.screen;
+        SignBlockEntity sign = screen.peakeor$getSign();
 
-        queue.add(new ServerboundSignUpdatePacket(sign.getBlockPos(), true, text[0], text[1], text[2], text[3]));
+        queue.add(new ServerboundSignUpdatePacket(sign.getBlockPos(), screen.peakeor$isFrontText(), text[0], text[1], text[2], text[3]));
 
         event.cancel();
     }

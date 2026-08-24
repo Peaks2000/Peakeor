@@ -14,4 +14,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface AbstractSignEditScreenAccessor {
     @Accessor("sign")
     SignBlockEntity peakeor$getSign();
+
+    @Accessor("isFrontText")
+    boolean peakeor$isFrontText();
 }

@@ -161,6 +161,14 @@ public class Velocity extends Module {
         }
     }
 
+    public boolean shouldModifyExplosions() {
+        return shouldModifyExplosions(isActive(), explosions.get());
+    }
+
+    public static boolean shouldModifyExplosions(boolean moduleActive, boolean explosionsEnabled) {
+        return moduleActive && explosionsEnabled;
+    }
+
     public double getHorizontal(Setting<Double> setting) {
         return isActive() ? setting.get() : 1;
     }

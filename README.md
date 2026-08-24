@@ -1,6 +1,6 @@
 
 <p align="center">
-<img src="src/main/resources/assets/peakeor-client/" alt="" width="15%"/>
+<img src="src/main/resources/assets/peakeor-client/logo-orange-classic-v3.png" alt="peakeor-client-logo" width="15%"/>
 </p>
 
 <h1 align="center">Peakeor</h1>
@@ -38,6 +38,8 @@ Bug reports and suggestions should be made in this repo's [issue tracker](https:
 Please provide as much information as you can to best help us understand your issue and give a better chance of it being resolved.
 
 ## Credits
+[Peaks2000](https://github.com/Peaks2000) for the Peakeor rebrand, customization, and maintenance
+
 [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) for the original project
 
 [Cabaletta](https://github.com/cabaletta) and [WagYourTail](https://github.com/wagyourtail) for [Baritone](https://github.com/cabaletta/baritone)

@@ -3,8 +3,9 @@
   "name": "Peakeor Client",
   "id": "peakeor-client",
   "version": "${version}",
-  "description": "Based utility mod.",
+  "description": "Peakeor is a Minecraft utility mod customized and maintained by Peaks2000, based on Meteor Client.",
   "authors": [
+    "Peaks2000",
     "MineGame159",
     "squidoodly",
     "seasnail"
@@ -15,7 +16,7 @@
     "sources": "https://github.com/Peaks2000/peakeor-client"
   },
   "license": "GPL-3.0",
-  "icon": "assets/peakeor-client/icon-orange-v2.png",
+  "icon": "assets/peakeor-client/icon-orange-classic-v3.png",
   "environment": "client",
   "entrypoints": {
     "client": [

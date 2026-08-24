@@ -19,6 +19,7 @@ public class ActiveModulesHud extends HudElement {
     public static final HudElementInfo<ActiveModulesHud> INFO = new HudElementInfo<>(Hud.GROUP, "active-modules", "Displays your active modules.", ActiveModulesHud::new);
 
     private static final Color WHITE = new Color();
+    private static final Color MODULE_COLOR = new Color(242, 140, 40);
 
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
     private final SettingGroup sgColor = settings.createGroup("Color");
@@ -85,59 +86,6 @@ public class ActiveModulesHud extends HudElement {
 
     // Color
 
-    private final Setting<ColorMode> colorMode = sgColor.add(new EnumSetting.Builder<ColorMode>()
-        .name("color-mode")
-        .description("What color to use for active modules.")
-        .defaultValue(ColorMode.Rainbow)
-        .build()
-    );
-
-    private final Setting<SettingColor> flatColor = sgColor.add(new ColorSetting.Builder()
-        .name("flat-color")
-        .description("Color for flat color mode.")
-        .defaultValue(new SettingColor(225, 25, 25))
-        .visible(() -> colorMode.get() == ColorMode.Flat)
-        .build()
-    );
-
-    private final Setting<Double> rainbowSpeed = sgColor.add(new DoubleSetting.Builder()
-        .name("rainbow-speed")
-        .description("Rainbow speed of rainbow color mode.")
-        .defaultValue(0.05)
-        .sliderMin(0.01)
-        .sliderMax(0.2)
-        .decimalPlaces(4)
-        .visible(() -> colorMode.get() == ColorMode.Rainbow)
-        .build()
-    );
-
-    private final Setting<Double> rainbowSpread = sgColor.add(new DoubleSetting.Builder()
-        .name("rainbow-spread")
-        .description("Rainbow spread of rainbow color mode.")
-        .defaultValue(0.01)
-        .sliderMin(0.001)
-        .sliderMax(0.05)
-        .decimalPlaces(4)
-        .visible(() -> colorMode.get() == ColorMode.Rainbow)
-        .build()
-    );
-
-    private final Setting<Double> rainbowSaturation = sgColor.add(new DoubleSetting.Builder()
-        .name("rainbow-saturation")
-        .defaultValue(1.0d)
-        .sliderRange(0.0d, 1.0d)
-        .visible(() -> colorMode.get() == ColorMode.Rainbow)
-        .build()
-    );
-
-    private final Setting<Double> rainbowBrightness = sgColor.add(new DoubleSetting.Builder()
-        .name("rainbow-brightness")
-        .defaultValue(1.0d)
-        .sliderRange(0.0d, 1.0d)
-        .visible(() -> colorMode.get() == ColorMode.Rainbow)
-        .build()
-    );
-
     private final Setting<SettingColor> moduleInfoColor = sgColor.add(new ColorSetting.Builder()
         .name("module-info-color")
         .description("Color of module info text.")
@@ -183,10 +131,6 @@ public class ActiveModulesHud extends HudElement {
     );
 
     private final List<Module> modules = new ArrayList<>();
-
-    private final Color rainbow = new Color(255, 255, 255);
-    private double rainbowHue1;
-    private double rainbowHue2;
 
     private double lastX;
     private double emptySpace;
@@ -241,12 +185,6 @@ public class ActiveModulesHud extends HudElement {
             return;
         }
 
-        rainbowHue1 += rainbowSpeed.get() * renderer.delta;
-        if (rainbowHue1 > 1) rainbowHue1 -= 1;
-        else if (rainbowHue1 < -1) rainbowHue1 += 1;
-
-        rainbowHue2 = rainbowHue1;
-
         lastX = x;
         emptySpace = renderer.textWidth(" ", shadow.get(), getScale());
 
@@ -261,19 +199,7 @@ public class ActiveModulesHud extends HudElement {
 
     private void renderModule(HudRenderer renderer, int index, double x, double y) {
         Module module = modules.get(index);
-        Color color = flatColor.get();
-
-        switch (colorMode.get()) {
-            case Random -> color = module.color;
-            case Rainbow -> {
-                rainbowHue2 += rainbowSpread.get();
-                int c = java.awt.Color.HSBtoRGB((float) rainbowHue2, rainbowSaturation.get().floatValue(), rainbowBrightness.get().floatValue());
-                rainbow.r = Color.toRGBAR(c);
-                rainbow.g = Color.toRGBAG(c);
-                rainbow.b = Color.toRGBAB(c);
-                color = rainbow;
-            }
-        }
+        Color color = MODULE_COLOR;
 
         renderer.text(module.title, x, y, color, shadow.get(), getScale());
 
@@ -363,12 +289,6 @@ public class ActiveModulesHud extends HudElement {
         Alphabetical,
         Biggest,
         Smallest
-    }
-
-    public enum ColorMode {
-        Flat,
-        Random,
-        Rainbow
     }
 
     public enum Background {

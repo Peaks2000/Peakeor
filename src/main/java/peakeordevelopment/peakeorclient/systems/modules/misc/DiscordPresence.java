@@ -21,6 +21,7 @@ import peakeordevelopment.peakeorclient.gui.widgets.pressable.WButton;
 import peakeordevelopment.peakeorclient.settings.*;
 import peakeordevelopment.peakeorclient.systems.modules.Categories;
 import peakeordevelopment.peakeorclient.systems.modules.Module;
+import peakeordevelopment.peakeorclient.systems.modules.Modules;
 import peakeordevelopment.peakeorclient.utils.Utils;
 import peakeordevelopment.peakeorclient.utils.misc.PeakeorStarscript;
 import meteordevelopment.orbit.EventHandler;
@@ -41,13 +42,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DiscordPresence extends Module {
+    private static final long APPLICATION_ID = 835240968533049424L;
+    private static final String ORANGE_LOGO_URL = "https://raw.githubusercontent.com/Peaks2000/Peakeor/peakeor/src/main/resources/assets/peakeor-client/icon-orange-classic-v3.png";
+
     public enum SelectMode {
         Random,
         Sequential
     }
 
+    private final SettingGroup sgGeneral = settings.getDefaultGroup();
     private final SettingGroup sgLine1 = settings.createGroup("Line 1");
     private final SettingGroup sgLine2 = settings.createGroup("Line 2");
+
+    private final Setting<Boolean> idlePrivacy = sgGeneral.add(new BoolSetting.Builder()
+        .name("idle-privacy")
+        .description("Hides player and server details when Discord Presence is the only active module.")
+        .defaultValue(true)
+        .build()
+    );
 
     // Line 1
 
@@ -81,7 +93,7 @@ public class DiscordPresence extends Module {
     private final Setting<List<String>> line2Strings = sgLine2.add(new StringListSetting.Builder()
         .name("line-2-messages")
         .description("Messages used for the second line.")
-        .defaultValue("Peakeor on Crack!", "{round(server.tps, 1)} TPS", "Playing on {server.difficulty} difficulty.", "{server.player_count} Players online")
+        .defaultValue("Peakeor Client", "{round(server.tps, 1)} TPS", "Playing on {server.difficulty} difficulty.", "{server.player_count} Players online")
         .onChanged(_ -> recompileLine2())
         .renderer(StarscriptTextBoxRenderer.class)
         .build()
@@ -106,7 +118,7 @@ public class DiscordPresence extends Module {
     private static final RichPresence rpc = new RichPresence();
     private SmallImage currentSmallImage;
     private int ticks;
-    private boolean forceUpdate, lastWasInMainMenu;
+    private boolean forceUpdate, lastWasInMainMenu, lastWasPrivate;
 
     private final List<Script> line1Scripts = new ArrayList<>();
     private int line1Ticks, line1I;
@@ -143,13 +155,13 @@ public class DiscordPresence extends Module {
 
     @Override
     public void onActivate() {
-        DiscordIPC.start(835240968533049424L, null);
+        DiscordIPC.start(APPLICATION_ID, null);
 
         rpc.setStart(System.currentTimeMillis() / 1000L);
 
         String largeText = "%s %s".formatted(PeakeorClient.NAME, PeakeorClient.VERSION);
         if (!PeakeorClient.BUILD_NUMBER.isEmpty()) largeText += " Build: " + PeakeorClient.BUILD_NUMBER;
-        rpc.setLargeImage("peakeor_client", largeText);
+        rpc.setLargeImage(ORANGE_LOGO_URL, largeText);
 
         currentSmallImage = SmallImage.Snail;
 
@@ -160,6 +172,7 @@ public class DiscordPresence extends Module {
         line1Ticks = 0;
         line2Ticks = 0;
         lastWasInMainMenu = false;
+        lastWasPrivate = false;
 
         line1I = 0;
         line2I = 0;
@@ -192,6 +205,9 @@ public class DiscordPresence extends Module {
     @EventHandler
     private void onTick(TickEvent.Post event) {
         boolean update = false;
+        boolean privateIdle = isPrivateIdle();
+        boolean privacyChanged = privateIdle != lastWasPrivate;
+        boolean refresh = forceUpdate || privacyChanged;
 
         // Image
         if (ticks >= 200 || forceUpdate) {
@@ -202,9 +218,15 @@ public class DiscordPresence extends Module {
             ticks = 0;
         } else ticks++;
 
-        if (Utils.canUpdate()) {
+        if (privateIdle) {
+            if (refresh) {
+                rpc.setDetails(PeakeorClient.NAME);
+                rpc.setState("Idle");
+                update = true;
+            }
+        } else if (Utils.canUpdate()) {
             // Line 1
-            if (line1Ticks >= line1UpdateDelay.get() || forceUpdate) {
+            if (line1Ticks >= line1UpdateDelay.get() || refresh) {
                 if (!line1Scripts.isEmpty()) {
                     int i = Utils.random(0, line1Scripts.size());
                     if (line1SelectMode.get() == SelectMode.Sequential) {
@@ -221,7 +243,7 @@ public class DiscordPresence extends Module {
             } else line1Ticks++;
 
             // Line 2
-            if (line2Ticks >= line2UpdateDelay.get() || forceUpdate) {
+            if (line2Ticks >= line2UpdateDelay.get() || refresh) {
                 if (!line2Scripts.isEmpty()) {
                     int i = Utils.random(0, line2Scripts.size());
                     if (line2SelectMode.get() == SelectMode.Sequential) {
@@ -237,7 +259,7 @@ public class DiscordPresence extends Module {
                 line2Ticks = 0;
             } else line2Ticks++;
         } else {
-            if (!lastWasInMainMenu) {
+            if (!lastWasInMainMenu || privacyChanged) {
                 rpc.setDetails(PeakeorClient.NAME + " " + (PeakeorClient.BUILD_NUMBER.isEmpty() ? PeakeorClient.VERSION : PeakeorClient.VERSION + " " + PeakeorClient.BUILD_NUMBER));
 
                 if (mc.gui.screen() instanceof TitleScreen) rpc.setState("Looking at title screen");
@@ -278,6 +300,11 @@ public class DiscordPresence extends Module {
         if (update) DiscordIPC.setActivity(rpc);
         forceUpdate = false;
         lastWasInMainMenu = !Utils.canUpdate();
+        lastWasPrivate = privateIdle;
+    }
+
+    private boolean isPrivateIdle() {
+        return idlePrivacy.get() && Modules.get().getActive().stream().noneMatch(module -> module != this);
     }
 
     @EventHandler

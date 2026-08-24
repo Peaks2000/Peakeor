@@ -116,7 +116,7 @@ public abstract class ClientPacketListenerMixin extends ClientCommonPacketListen
     @Inject(method = "handleExplosion", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V", shift = At.Shift.AFTER))
     private void onHandleExplosionVelocity(ClientboundExplodePacket packet, CallbackInfo ci) {
         Velocity velocity = Modules.get().get(Velocity.class);
-        if (!velocity.explosions.get()) return;
+        if (!velocity.shouldModifyExplosions()) return;
 
         IClientboundExplodePacket explosionPacket = (IClientboundExplodePacket) (Object) packet;
         explosionPacket.peakeor$setVelocityX((float) (packet.playerKnockback().orElse(Vec3.ZERO).x * velocity.getHorizontal(velocity.explosionsHorizontal)));

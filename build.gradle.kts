@@ -86,6 +86,11 @@ dependencies {
     compileOnly(libs.baritone)
     compileOnly(libs.modmenu)
 
+    // Tests
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     // Libraries (JAR-in-JAR)
     jij(libs.orbit)
     jij(libs.starscript)
@@ -160,6 +165,10 @@ fun toMinecraftCompat(version: String): String {
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+    }
+
     processResources {
         val buildNumber = providers.gradleProperty("build_number").getOrElse("")
         val commit = providers.gradleProperty("commit").getOrElse("")
