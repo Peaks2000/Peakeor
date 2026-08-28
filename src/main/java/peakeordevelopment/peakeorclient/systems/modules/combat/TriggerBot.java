@@ -26,6 +26,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Set;
 
@@ -125,6 +126,26 @@ public class TriggerBot extends Module {
         .defaultValue(0.8)
         .range(0, 3)
         .sliderRange(0, 3)
+        .visible(humanAim::get)
+        .build()
+    );
+
+    private final Setting<Integer> movingMissChance = sgGeneral.add(new IntSetting.Builder()
+        .name("moving-miss-chance")
+        .description("Percent chance a swing whiffs past a target that is moving away, so you don't perfectly track a retreating player.")
+        .defaultValue(25)
+        .range(0, 100)
+        .sliderRange(0, 100)
+        .visible(humanAim::get)
+        .build()
+    );
+
+    private final Setting<Double> movingWhiff = sgGeneral.add(new DoubleSetting.Builder()
+        .name("moving-whiff")
+        .description("How far the swing misses past a moving target, in blocks of lead offset.")
+        .defaultValue(1.5)
+        .range(0, 4)
+        .sliderRange(0, 4)
         .visible(humanAim::get)
         .build()
     );
@@ -229,6 +250,7 @@ public class TriggerBot extends Module {
     private float driftX;
     private float driftY;
     private float nextSwingCharge = 1f;
+    private boolean whiffSwing;
 
     public TriggerBot() {
         super(Categories.Combat, "trigger-bot", "Attacks entities as soon as they are in your crosshair.", "triggerbot", "shoot-on-sight");
@@ -258,12 +280,14 @@ public class TriggerBot extends Module {
             attackTimer = 0;
             reactionTimer = 0;
             lockedTarget = null;
+            whiffSwing = false;
             return;
         }
         if (onlyOnClick.get() && !mc.options.keyAttack.isDown()) {
             attackTimer = 0;
             reactionTimer = 0;
             lockedTarget = null;
+            whiffSwing = false;
             return;
         }
         if (TickRate.INSTANCE.getTimeSinceLastTick() >= 1f && pauseOnLag.get()) return;
@@ -278,6 +302,15 @@ public class TriggerBot extends Module {
             wanderDrift();
             double baseYaw = Rotations.getYaw(target);
             double basePitch = Rotations.getPitch(target, Target.Body);
+            if (whiffSwing) {
+                Vec3 dir = target.getDeltaMovement();
+                if (dir.horizontalDistanceSqr() > 1.0E-6) {
+                    Vec3 lead = dir.normalize().scale(movingWhiff.get());
+                    Vec3 pos = target.position().add(lead);
+                    baseYaw = Rotations.getYaw(pos);
+                    basePitch = Rotations.getPitch(pos);
+                }
+            }
             float desiredYaw = Mth.wrapDegrees((float) (baseYaw + driftX));
             float desiredPitch = Mth.wrapDegrees((float) (basePitch + driftY));
             float deltaYaw = Mth.wrapDegrees(desiredYaw - smoothYaw);
@@ -298,7 +331,10 @@ public class TriggerBot extends Module {
         }
         if (attackTimer > 0) {
             attackTimer--;
-            if (attackTimer == 0) nextSwingCharge = (float) (swingPoint.get() * Utils.random(0.85, 1.0));
+            if (attackTimer == 0) {
+                nextSwingCharge = (float) (swingPoint.get() * Utils.random(0.85, 1.0));
+                whiffSwing = isMovingAway() && movingMissChance.get() > 0 && Utils.random(0, 100) < movingMissChance.get();
+            }
             return;
         }
         if (attackCooldown.get() && mc.player.getAttackStrengthScale(0.5f) < nextSwingCharge) return;
@@ -334,6 +370,14 @@ public class TriggerBot extends Module {
         }
         driftX = Mth.clamp(driftX, -limitX, limitX);
         driftY = Mth.clamp(driftY, -limitY, limitY);
+    }
+
+    private boolean isMovingAway() {
+        if (target == null) return false;
+        Vec3 velocity = target.getDeltaMovement();
+        if (velocity.horizontalDistanceSqr() == 0) return false;
+        Vec3 toTarget = target.position().subtract(mc.player.position());
+        return toTarget.dot(velocity) > 0;
     }
 
     private boolean entityCheck(Entity entity) {
