@@ -26,6 +26,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.player.Player;
 
+import java.util.Random;
 import java.util.Set;
 
 public class TriggerBot extends Module {
@@ -36,43 +37,63 @@ public class TriggerBot extends Module {
 
     private final Setting<Boolean> rotate = sgGeneral.add(new BoolSetting.Builder()
         .name("rotate")
-        .description("Rotates towards the entity in your crosshair with a small random offset. Only use if you actually want the bot to move your aim.")
+        .description("Rotates towards the entity in your crosshair using a human-like aim model. Optional, off by default.")
         .defaultValue(false)
         .build()
     );
 
     private final Setting<Double> aimRadius = sgGeneral.add(new DoubleSetting.Builder()
         .name("aim-radius")
-        .description("Random rotation offset in degrees applied while aiming.")
+        .description("How much hand tremor appears around the target while aiming, in degrees.")
         .defaultValue(1.5)
         .range(0, 10)
-        .sliderRange(0, 10)
+        .sliderRange(0, 5)
         .visible(rotate::get)
         .build()
     );
 
     private final Setting<Boolean> attackCooldown = sgGeneral.add(new BoolSetting.Builder()
         .name("attack-cooldown")
-        .description("Waits for the Minecraft attack cooldown of the weapon you are holding before attacking.")
+        .description("Times clicks around the weapon cooldown so most swings land near full strength, with a drifting, imperfect rhythm.")
         .defaultValue(true)
         .build()
     );
 
-    private final Setting<Integer> baseDelay = sgGeneral.add(new IntSetting.Builder()
-        .name("base-delay")
-        .description("Base tick delay between attacks, like the natural delay between your clicks.")
-        .defaultValue(2)
-        .range(0, 20)
-        .sliderRange(0, 20)
+    private final Setting<Double> clickSpeed = sgGeneral.add(new DoubleSetting.Builder()
+        .name("click-speed")
+        .description("Baseline clicking speed in clicks per second when attack-cooldown is off. The bot drifts around this like a real hand.")
+        .defaultValue(4.5)
+        .range(0.5, 15)
+        .sliderRange(0.5, 15)
+        .visible(() -> !attackCooldown.get())
         .build()
     );
 
-    private final Setting<Integer> randomDelay = sgGeneral.add(new IntSetting.Builder()
-        .name("random-delay")
-        .description("Maximum random ticks added on top of the base delay so your clicking speed varies naturally.")
-        .defaultValue(3)
-        .range(0, 20)
-        .sliderRange(0, 20)
+    private final Setting<Integer> clickVariation = sgGeneral.add(new IntSetting.Builder()
+        .name("click-variation")
+        .description("How much click timing fluctuates. High values feel erratic, low values feel like a metronome.")
+        .defaultValue(20)
+        .range(0, 60)
+        .sliderRange(0, 60)
+        .build()
+    );
+
+    private final Setting<Integer> doubleClick = sgGeneral.add(new IntSetting.Builder()
+        .name("double-click")
+        .description("Percent chance of an accidental double swing, like a finger slip. The second swing whiffs and wastes the cooldown.")
+        .defaultValue(8)
+        .range(0, 40)
+        .sliderRange(0, 40)
+        .build()
+    );
+
+    private final Setting<Integer> pauseChance = sgGeneral.add(new IntSetting.Builder()
+        .name("pause-chance")
+        .description("Percent chance of a short readjustment pause, like lifting the finger to re-track.")
+        .defaultValue(12)
+        .range(0, 50)
+        .sliderRange(0, 50)
+        .visible(() -> !attackCooldown.get())
         .build()
     );
 
@@ -95,7 +116,7 @@ public class TriggerBot extends Module {
 
     private final Setting<Integer> reactionTime = sgGeneral.add(new IntSetting.Builder()
         .name("reaction-time")
-        .description("Random delay in ticks before the bot first clicks on a new target, emulating human reaction time.")
+        .description("Median reaction time in ticks before the bot first clicks on a new target. Drawn from a human-shaped distribution.")
         .defaultValue(4)
         .range(0, 20)
         .sliderRange(0, 20)
@@ -118,7 +139,7 @@ public class TriggerBot extends Module {
 
     private final Setting<Double> swingPoint = sgGeneral.add(new DoubleSetting.Builder()
         .name("swing-point")
-        .description("Random weapon charge (0-1) at which the bot clicks. Lower clicks before fully charged; higher waits for a fuller charge.")
+        .description("Center of the drifting swing charge (0-1) the bot clicks at. The charge wanders around this, so pacing changes naturally.")
         .defaultValue(0.9)
         .range(0.5, 1)
         .sliderRange(0.5, 1)
@@ -175,28 +196,54 @@ public class TriggerBot extends Module {
         .build()
     );
 
-    private int attackTimer;
+    private static final Random random = new Random();
+
     private Entity target;
     private Entity lockedTarget;
     private int reactionTimer;
-    private float nextSwingCharge = 1f;
+    private long awaySince;
+
+    private float cps;
+    private long cpsUpdateMillis;
+    private int clickTimer;
+    private int lastGap;
+    private int postMissTimer;
+    private boolean doublePending;
+    private float chargeWalk;
+
+    private float aimYaw;
+    private float aimPitch;
+    private float tremorX;
+    private float tremorY;
 
     public TriggerBot() {
-        super(Categories.Combat, "trigger-bot", "Attacks entities as soon as they are in your crosshair.", "triggerbot", "shoot-on-sight");
+        super(Categories.Combat, "trigger-bot", "Attacks entities as soon as they are in your crosshair, clicking with a fluid, human-like cadence.", "triggerbot", "shoot-on-sight");
     }
 
     @Override
     public void onActivate() {
-        attackTimer = 0;
-        reactionTimer = 0;
         target = null;
         lockedTarget = null;
+        reactionTimer = 0;
+        awaySince = 0;
+        cps = clickSpeed.get().floatValue();
+        cpsUpdateMillis = System.currentTimeMillis();
+        clickTimer = 0;
+        lastGap = 10;
+        postMissTimer = 0;
+        doublePending = false;
+        chargeWalk = swingPoint.get().floatValue();
+        aimYaw = mc.player.getYRot();
+        aimPitch = mc.player.getXRot();
+        tremorX = 0;
+        tremorY = 0;
     }
 
     @Override
     public void onDeactivate() {
         target = null;
         lockedTarget = null;
+        doublePending = false;
     }
 
     @EventHandler
@@ -204,43 +251,34 @@ public class TriggerBot extends Module {
         target = mc.crosshairPickEntity;
 
         if (!PlayerUtils.isAlive() || target == null || !entityCheck(target)) {
-            attackTimer = 0;
-            reactionTimer = 0;
-            lockedTarget = null;
+            onTargetLost();
             return;
         }
         if (onlyOnClick.get() && !mc.options.keyAttack.isDown()) {
-            attackTimer = 0;
-            reactionTimer = 0;
-            lockedTarget = null;
+            onTargetLost();
             return;
         }
         if (TickRate.INSTANCE.getTimeSinceLastTick() >= 1f && pauseOnLag.get()) return;
 
-        if (rotate.get()) {
-            double yaw = Rotations.getYaw(target) + Utils.random(-aimRadius.get(), aimRadius.get());
-            double pitch = Rotations.getPitch(target, Target.Body) + Utils.random(-aimRadius.get(), aimRadius.get());
-            Rotations.rotate(yaw, pitch);
-        }
+        if (rotate.get()) updateAim();
 
         if (lockedTarget != target) {
             lockedTarget = target;
-            reactionTimer = reactionTime.get() > 0 ? Utils.random(1, reactionTime.get() + 1) : 0;
-            attackTimer = Math.max(attackTimer, reactionTimer);
+            reactionTimer = sampleReaction();
+            awaySince = 0;
         }
 
         if (reactionTimer > 0) {
             reactionTimer--;
             return;
         }
-        if (attackTimer > 0) {
-            attackTimer--;
-            if (attackTimer == 0) {
-                nextSwingCharge = (float) (swingPoint.get() * Utils.random(0.85, 1.0));
-            }
+
+        updateCps();
+
+        if (postMissTimer > 0) {
+            postMissTimer--;
             return;
         }
-        if (attackCooldown.get() && mc.player.getAttackStrengthScale(0.5f) < nextSwingCharge) return;
 
         if (onlyCrits.get()) {
             boolean falling = mc.player.fallDistance > 0
@@ -252,18 +290,113 @@ public class TriggerBot extends Module {
         }
 
         if (missChanceEnabled.get() && Utils.random(0, 100) < missChance.get()) {
-            attackTimer = nextAttackTimer();
+            postMissTimer = 2 + Utils.random(0, 3);
             return;
         }
 
-        mc.gameMode.attack(mc.player, target);
-        mc.player.swing(InteractionHand.MAIN_HAND);
-
-        attackTimer = nextAttackTimer();
+        if (attackCooldown.get()) handleCooldownClicking();
+        else handleFreeClicking();
     }
 
-    private int nextAttackTimer() {
-        return baseDelay.get() + Utils.random(0, randomDelay.get() + 1);
+    private void handleCooldownClicking() {
+        if (doublePending) {
+            swing();
+            doublePending = false;
+            chargeWalk = 1f;
+            return;
+        }
+
+        float minWalk = Math.max(0.55f, (float) (swingPoint.get() - 0.25));
+        chargeWalk = Mth.clamp(chargeWalk + 0.03f * (float) random.nextGaussian(), minWalk, 1f);
+
+        if (mc.player.getAttackStrengthScale(0.5f) < chargeWalk) return;
+
+        swing();
+        chargeWalk = swingPoint.get().floatValue();
+        doublePending = Utils.random(0, 100) < doubleClick.get();
+    }
+
+    private void handleFreeClicking() {
+        if (clickTimer > 0) {
+            clickTimer--;
+            return;
+        }
+
+        swing();
+        clickTimer = handGap();
+    }
+
+    private int handGap() {
+        double base = 20.0 / Math.max(1.0E-3, cps);
+        float sigma = 0.12f + clickVariation.get() * 0.003f;
+        float jitter = (float) Math.exp(sigma * (float) random.nextGaussian());
+        int delay = (int) Math.round(base * jitter);
+
+        if (Utils.random(0, 100) < doubleClick.get()) {
+            return 1;
+        }
+
+        if (Utils.random(0, 100) < pauseChance.get()) {
+            delay += Utils.random(3, 9);
+        }
+
+        delay = (int) Math.round(delay * 0.6 + lastGap * 0.4);
+        delay = Mth.clamp(delay, 1, 30);
+        lastGap = delay;
+        return delay;
+    }
+
+    private void updateCps() {
+        long now = System.currentTimeMillis();
+        if (now - cpsUpdateMillis < 1000) return;
+        cpsUpdateMillis = now;
+        float variation = clickVariation.get() * 0.05f;
+        cps = Mth.clamp(cps + (float) random.nextGaussian() * variation,
+            clickSpeed.get().floatValue() * 0.55f,
+            clickSpeed.get().floatValue() * 1.7f);
+    }
+
+    private int sampleReaction() {
+        float median = Math.max(1f, reactionTime.get());
+        int ticks = (int) Math.round(Math.exp(Math.log(median) + 0.45 * random.nextGaussian()));
+        if (awaySince != 0 && System.currentTimeMillis() - awaySince < 2000) {
+            ticks = Math.max(1, (int) Math.round(ticks * 0.5));
+        }
+        return Mth.clamp(ticks, 0, 25);
+    }
+
+    private void onTargetLost() {
+        if (target != null || lockedTarget != null) awaySince = System.currentTimeMillis();
+        target = null;
+        lockedTarget = null;
+        reactionTimer = 0;
+        clickTimer = 0;
+        postMissTimer = 0;
+        doublePending = false;
+    }
+
+    private void updateAim() {
+        double desiredYaw = Rotations.getYaw(target);
+        double desiredPitch = Rotations.getPitch(target, Target.Body);
+
+        float deltaYaw = Mth.wrapDegrees((float) (desiredYaw - aimYaw));
+        float deltaPitch = Mth.wrapDegrees((float) (desiredPitch - aimPitch));
+
+        float maxStepYaw = 2.2f + Math.abs(deltaYaw) * 0.6f;
+        float maxStepPitch = 2.2f + Math.abs(deltaPitch) * 0.6f;
+
+        aimYaw += Mth.clamp(deltaYaw, -maxStepYaw, maxStepYaw);
+        aimPitch += Mth.clamp(deltaPitch, -maxStepPitch, maxStepPitch);
+
+        tremorX = tremorX * 0.8f + (float) random.nextGaussian() * 0.08f * aimRadius.get().floatValue();
+        tremorY = tremorY * 0.8f + (float) random.nextGaussian() * 0.08f * aimRadius.get().floatValue();
+
+        Rotations.rotate(Mth.wrapDegrees(aimYaw + tremorX), Mth.wrapDegrees(aimPitch + tremorY));
+    }
+
+    private void swing() {
+        mc.gameMode.attack(mc.player, target);
+        mc.player.swing(InteractionHand.MAIN_HAND);
     }
 
     private boolean entityCheck(Entity entity) {
