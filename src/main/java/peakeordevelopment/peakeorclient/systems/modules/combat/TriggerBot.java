@@ -25,7 +25,6 @@ import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Set;
@@ -61,25 +60,15 @@ public class TriggerBot extends Module {
 
     private final Setting<Boolean> randomizeDelay = sgGeneral.add(new BoolSetting.Builder()
         .name("randomize-delay")
-        .description("Adds a random delay between attacks that follows a natural distribution so attacks don't look robotic.")
+        .description("Adds a random deviation to the base delay so attacks don't fall on a perfectly even cadence.")
         .defaultValue(true)
         .build()
     );
 
-    private final Setting<Integer> delayMin = sgGeneral.add(new IntSetting.Builder()
-        .name("delay-min")
-        .description("The minimum random delay between attacks in ticks.")
-        .defaultValue(1)
-        .range(0, 20)
-        .sliderRange(0, 20)
-        .visible(randomizeDelay::get)
-        .build()
-    );
-
-    private final Setting<Integer> delayMax = sgGeneral.add(new IntSetting.Builder()
-        .name("delay-max")
-        .description("The maximum random delay between attacks in ticks.")
-        .defaultValue(4)
+    private final Setting<Integer> randomDelay = sgGeneral.add(new IntSetting.Builder()
+        .name("random-delay")
+        .description("Maximum random ticks added on top of the base delay between attacks.")
+        .defaultValue(3)
         .range(0, 20)
         .sliderRange(0, 20)
         .visible(randomizeDelay::get)
@@ -349,14 +338,18 @@ public class TriggerBot extends Module {
         }
 
         if (missChanceEnabled.get() && Utils.random(0, 100) < missChance.get()) {
-            attackTimer = baseDelay.get() + (randomizeDelay.get() ? Utils.random(delayMin.get(), delayMax.get() + 1) : 0);
+            attackTimer = nextAttackTimer();
             return;
         }
 
         mc.gameMode.attack(mc.player, target);
         mc.player.swing(InteractionHand.MAIN_HAND);
 
-        attackTimer = baseDelay.get() + (randomizeDelay.get() ? Utils.random(delayMin.get(), delayMax.get() + 1) : 0);
+        attackTimer = nextAttackTimer();
+    }
+
+    private int nextAttackTimer() {
+        return baseDelay.get() + (randomizeDelay.get() ? Utils.random(0, randomDelay.get() + 1) : 0);
     }
 
     private void wanderDrift() {
@@ -386,13 +379,7 @@ public class TriggerBot extends Module {
 
         if (!entities.get().contains(entity.getType())) return false;
 
-        AABB hitbox = entity.getBoundingBox();
-        if (!PlayerUtils.isWithin(
-            Mth.clamp(mc.player.getX(), hitbox.minX, hitbox.maxX),
-            Mth.clamp(mc.player.getY(), hitbox.minY, hitbox.maxY),
-            Mth.clamp(mc.player.getZ(), hitbox.minZ, hitbox.maxZ),
-            range.get()
-        )) return false;
+        if (mc.player.distanceTo(entity) > range.get()) return false;
 
         if (!PlayerUtils.canSeeEntity(entity) && !PlayerUtils.isWithin(entity, wallsRange.get())) return false;
         if (ignoreNamed.get() && entity.hasCustomName()) return false;
