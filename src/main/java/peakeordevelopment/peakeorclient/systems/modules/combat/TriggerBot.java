@@ -60,7 +60,7 @@ public class TriggerBot extends Module {
 
     private final Setting<Boolean> randomizeDelay = sgGeneral.add(new BoolSetting.Builder()
         .name("randomize-delay")
-        .description("Adds a small random delay on top of the cooldown so attacks don't look robotic.")
+        .description("Adds a random delay between attacks that follows a natural distribution so attacks don't look robotic.")
         .defaultValue(true)
         .build()
     );
@@ -85,10 +85,60 @@ public class TriggerBot extends Module {
         .build()
     );
 
+    private final Setting<Boolean> missChanceEnabled = sgGeneral.add(new BoolSetting.Builder()
+        .name("miss-chance-enabled")
+        .description("Toggles the random chance to miss a swing, simulating human error.")
+        .defaultValue(true)
+        .build()
+    );
+
+    private final Setting<Double> missChance = sgGeneral.add(new DoubleSetting.Builder()
+        .name("miss-chance")
+        .description("Percent chance the bot misses a swing entirely, simulating human error.")
+        .defaultValue(20)
+        .range(0, 100)
+        .sliderRange(0, 100)
+        .visible(missChanceEnabled::get)
+        .build()
+    );
+
+    private final Setting<Boolean> smoothAim = sgGeneral.add(new BoolSetting.Builder()
+        .name("smooth-aim")
+        .description("Smooths the rotation movement instead of instantly snapping, making aim look hand-rolled.")
+        .defaultValue(true)
+        .build()
+    );
+
+    private final Setting<Double> smoothSpeed = sgGeneral.add(new DoubleSetting.Builder()
+        .name("smooth-speed")
+        .description("How fast the aim eases toward the target. Lower is slower and more human.")
+        .defaultValue(0.7)
+        .range(0.05, 1)
+        .sliderRange(0.05, 1)
+        .visible(smoothAim::get)
+        .build()
+    );
+
     private final Setting<Boolean> onlyOnClick = sgGeneral.add(new BoolSetting.Builder()
         .name("only-on-click")
         .description("Only attacks when you are holding left click.")
         .defaultValue(false)
+        .build()
+    );
+
+    private final Setting<Boolean> onlyCrits = sgGeneral.add(new BoolSetting.Builder()
+        .name("only-crits")
+        .description("Only attacks when a jump would land a critical hit, so hits feel earned and less systematic.")
+        .defaultValue(false)
+        .build()
+    );
+
+    private final Setting<Integer> baseDelay = sgGeneral.add(new IntSetting.Builder()
+        .name("base-delay")
+        .description("Base tick delay between attacks. The random delay is added on top of this.")
+        .defaultValue(2)
+        .range(0, 20)
+        .sliderRange(0, 20)
         .build()
     );
 
@@ -143,6 +193,9 @@ public class TriggerBot extends Module {
 
     private int attackTimer;
     private Entity target;
+    private float smoothYaw;
+    private float smoothPitch;
+    private boolean initialized;
 
     public TriggerBot() {
         super(Categories.Combat, "trigger-bot", "Attacks entities as soon as they are in your crosshair.", "triggerbot", "shoot-on-sight");
@@ -152,6 +205,7 @@ public class TriggerBot extends Module {
     public void onActivate() {
         attackTimer = 0;
         target = null;
+        initialized = false;
     }
 
     @Override
@@ -165,19 +219,29 @@ public class TriggerBot extends Module {
 
         if (!PlayerUtils.isAlive() || target == null || !entityCheck(target)) {
             attackTimer = 0;
+            initialized = false;
             return;
         }
         if (onlyOnClick.get() && !mc.options.keyAttack.isDown()) {
             attackTimer = 0;
+            initialized = false;
             return;
         }
         if (TickRate.INSTANCE.getTimeSinceLastTick() >= 1f && pauseOnLag.get()) return;
 
-        if (rotate.get()) {
-            double yaw = Rotations.getYaw(target) + Utils.random(-aimRadius.get(), aimRadius.get());
-            double pitch = Rotations.getPitch(target, Target.Body) + Utils.random(-aimRadius.get(), aimRadius.get());
+        double yaw = Rotations.getYaw(target) + Utils.random(-aimRadius.get(), aimRadius.get());
+        double pitch = Rotations.getPitch(target, Target.Body) + Utils.random(-aimRadius.get(), aimRadius.get());
+
+        if (smoothAim.get() && initialized) {
+            float targetYaw = Mth.wrapDegrees((float) yaw);
+            float targetPitch = Mth.wrapDegrees((float) pitch);
+            smoothYaw += (float) ((targetYaw - smoothYaw) * Math.min(1.0, smoothSpeed.get()));
+            smoothPitch += (float) ((targetPitch - smoothPitch) * Math.min(1.0, smoothSpeed.get()));
+            Rotations.rotate(smoothYaw, smoothPitch);
+        } else if (rotate.get()) {
             Rotations.rotate(yaw, pitch);
         }
+        initialized = true;
 
         if (attackTimer > 0) {
             attackTimer--;
@@ -185,10 +249,24 @@ public class TriggerBot extends Module {
         }
         if (attackCooldown.get() && mc.player.getAttackStrengthScale(0.5f) < 1f) return;
 
+        if (onlyCrits.get()) {
+            boolean falling = mc.player.fallDistance > 0
+                && !mc.player.onGround()
+                && !mc.player.onClimbable()
+                && !mc.player.isInWater()
+                && !mc.player.isInLava();
+            if (!falling) return;
+        }
+
+        if (missChanceEnabled.get() && Utils.random(0, 100) < missChance.get()) {
+            attackTimer = baseDelay.get() + (randomizeDelay.get() ? Utils.random(delayMin.get(), delayMax.get() + 1) : 0);
+            return;
+        }
+
         mc.gameMode.attack(mc.player, target);
         mc.player.swing(InteractionHand.MAIN_HAND);
 
-        attackTimer = randomizeDelay.get() ? Utils.random(delayMin.get(), delayMax.get() + 1) : 0;
+        attackTimer = baseDelay.get() + (randomizeDelay.get() ? Utils.random(delayMin.get(), delayMax.get() + 1) : 0);
     }
 
     private boolean entityCheck(Entity entity) {
