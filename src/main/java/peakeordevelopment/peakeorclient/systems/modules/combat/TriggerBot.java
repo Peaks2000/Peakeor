@@ -102,20 +102,39 @@ public class TriggerBot extends Module {
         .build()
     );
 
-    private final Setting<Boolean> smoothAim = sgGeneral.add(new BoolSetting.Builder()
-        .name("smooth-aim")
-        .description("Smooths the rotation movement instead of instantly snapping, making aim look hand-rolled.")
+    private final Setting<Boolean> humanAim = sgGeneral.add(new BoolSetting.Builder()
+        .name("human-aim")
+        .description("Makes aim wander and ease like a real mouse instead of sitting dead-still on the target.")
         .defaultValue(true)
         .build()
     );
 
-    private final Setting<Double> smoothSpeed = sgGeneral.add(new DoubleSetting.Builder()
-        .name("smooth-speed")
-        .description("How fast the aim eases toward the target. Lower is slower and more human.")
-        .defaultValue(0.7)
+    private final Setting<Double> aimSmoothness = sgGeneral.add(new DoubleSetting.Builder()
+        .name("aim-smoothness")
+        .description("How fast the crosshair eases toward the target. Lower is slower and more human.")
+        .defaultValue(0.35)
         .range(0.05, 1)
         .sliderRange(0.05, 1)
-        .visible(smoothAim::get)
+        .visible(humanAim::get)
+        .build()
+    );
+
+    private final Setting<Double> aimDrift = sgGeneral.add(new DoubleSetting.Builder()
+        .name("aim-drift")
+        .description("How far the crosshair is allowed to drift and wander off target between corrections.")
+        .defaultValue(0.8)
+        .range(0, 3)
+        .sliderRange(0, 3)
+        .visible(humanAim::get)
+        .build()
+    );
+
+    private final Setting<Integer> reactionTime = sgGeneral.add(new IntSetting.Builder()
+        .name("reaction-time")
+        .description("Random delay in ticks before the bot first engages a target, emulating human reaction time.")
+        .defaultValue(4)
+        .range(0, 20)
+        .sliderRange(0, 20)
         .build()
     );
 
@@ -139,6 +158,16 @@ public class TriggerBot extends Module {
         .defaultValue(2)
         .range(0, 20)
         .sliderRange(0, 20)
+        .build()
+    );
+
+    private final Setting<Double> swingPoint = sgGeneral.add(new DoubleSetting.Builder()
+        .name("swing-point")
+        .description("Random weapon charge (0-1) at which the bot swings. Lower lets it strike before fully charged; higher waits for a fuller charge. Randomised each swing so timing isn't perfect.")
+        .defaultValue(0.9)
+        .range(0.5, 1)
+        .sliderRange(0.5, 1)
+        .visible(attackCooldown::get)
         .build()
     );
 
@@ -195,7 +224,11 @@ public class TriggerBot extends Module {
     private Entity target;
     private float smoothYaw;
     private float smoothPitch;
-    private boolean initialized;
+    private Entity lockedTarget;
+    private int reactionTimer;
+    private float driftX;
+    private float driftY;
+    private float nextSwingCharge = 1f;
 
     public TriggerBot() {
         super(Categories.Combat, "trigger-bot", "Attacks entities as soon as they are in your crosshair.", "triggerbot", "shoot-on-sight");
@@ -204,13 +237,17 @@ public class TriggerBot extends Module {
     @Override
     public void onActivate() {
         attackTimer = 0;
+        reactionTimer = 0;
         target = null;
-        initialized = false;
+        lockedTarget = null;
+        driftX = 0;
+        driftY = 0;
     }
 
     @Override
     public void onDeactivate() {
         target = null;
+        lockedTarget = null;
     }
 
     @EventHandler
@@ -219,35 +256,52 @@ public class TriggerBot extends Module {
 
         if (!PlayerUtils.isAlive() || target == null || !entityCheck(target)) {
             attackTimer = 0;
-            initialized = false;
+            reactionTimer = 0;
+            lockedTarget = null;
             return;
         }
         if (onlyOnClick.get() && !mc.options.keyAttack.isDown()) {
             attackTimer = 0;
-            initialized = false;
+            reactionTimer = 0;
+            lockedTarget = null;
             return;
         }
         if (TickRate.INSTANCE.getTimeSinceLastTick() >= 1f && pauseOnLag.get()) return;
 
-        double yaw = Rotations.getYaw(target) + Utils.random(-aimRadius.get(), aimRadius.get());
-        double pitch = Rotations.getPitch(target, Target.Body) + Utils.random(-aimRadius.get(), aimRadius.get());
+        if (lockedTarget != target) {
+            lockedTarget = target;
+            reactionTimer = reactionTime.get() > 0 ? Utils.random(1, reactionTime.get() + 1) : 0;
+            attackTimer = Math.max(attackTimer, reactionTimer);
+        }
 
-        if (smoothAim.get() && initialized) {
-            float targetYaw = Mth.wrapDegrees((float) yaw);
-            float targetPitch = Mth.wrapDegrees((float) pitch);
-            smoothYaw += (float) ((targetYaw - smoothYaw) * Math.min(1.0, smoothSpeed.get()));
-            smoothPitch += (float) ((targetPitch - smoothPitch) * Math.min(1.0, smoothSpeed.get()));
+        if (humanAim.get()) {
+            wanderDrift();
+            double baseYaw = Rotations.getYaw(target);
+            double basePitch = Rotations.getPitch(target, Target.Body);
+            float desiredYaw = Mth.wrapDegrees((float) (baseYaw + driftX));
+            float desiredPitch = Mth.wrapDegrees((float) (basePitch + driftY));
+            float deltaYaw = Mth.wrapDegrees(desiredYaw - smoothYaw);
+            float deltaPitch = Mth.wrapDegrees(desiredPitch - smoothPitch);
+            float step = (float) Math.min(1.0, aimSmoothness.get() * Utils.random(0.7, 1.3));
+            smoothYaw += Mth.clamp(deltaYaw, -step * 30f, step * 30f) * step;
+            smoothPitch += Mth.clamp(deltaPitch, -step * 30f, step * 30f) * step;
             Rotations.rotate(smoothYaw, smoothPitch);
         } else if (rotate.get()) {
+            double yaw = Rotations.getYaw(target) + Utils.random(-aimRadius.get(), aimRadius.get());
+            double pitch = Rotations.getPitch(target, Target.Body) + Utils.random(-aimRadius.get(), aimRadius.get());
             Rotations.rotate(yaw, pitch);
         }
-        initialized = true;
 
-        if (attackTimer > 0) {
-            attackTimer--;
+        if (reactionTimer > 0) {
+            reactionTimer--;
             return;
         }
-        if (attackCooldown.get() && mc.player.getAttackStrengthScale(0.5f) < 1f) return;
+        if (attackTimer > 0) {
+            attackTimer--;
+            if (attackTimer == 0) nextSwingCharge = (float) (swingPoint.get() * Utils.random(0.85, 1.0));
+            return;
+        }
+        if (attackCooldown.get() && mc.player.getAttackStrengthScale(0.5f) < nextSwingCharge) return;
 
         if (onlyCrits.get()) {
             boolean falling = mc.player.fallDistance > 0
@@ -267,6 +321,19 @@ public class TriggerBot extends Module {
         mc.player.swing(InteractionHand.MAIN_HAND);
 
         attackTimer = baseDelay.get() + (randomizeDelay.get() ? Utils.random(delayMin.get(), delayMax.get() + 1) : 0);
+    }
+
+    private void wanderDrift() {
+        float limitX = (float) Math.max(0.1, aimDrift.get());
+        float limitY = (float) Math.max(0.1, aimDrift.get() * 0.6);
+        driftX += (float) Utils.random(-0.25, 0.25);
+        driftY += (float) Utils.random(-0.2, 0.2);
+        if (Utils.random(0.0, 1.0) < 0.04) {
+            driftX = (float) Utils.random(-limitX, limitX);
+            driftY = (float) Utils.random(-limitY, limitY);
+        }
+        driftX = Mth.clamp(driftX, -limitX, limitX);
+        driftY = Mth.clamp(driftY, -limitY, limitY);
     }
 
     private boolean entityCheck(Entity entity) {
