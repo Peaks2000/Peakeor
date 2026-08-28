@@ -39,13 +39,13 @@ public abstract class SplashManagerMixin {
     @Unique
     private static List<String> getPeakeorSplashes() {
         return List.of(
-            "Peakeor on Crack!",
+            "Peakeor is amazing!",
             "Star Peakeor Client on GitHub!",
             "Based utility mod.",
             "§6MineGame159 §fbased legend",
             "§4Peakeor Client",
-            "§4Peakeor on Crack!",
-            "§6Peakeor on Crack!"
+            "§4Peakeor is amazing!",
+            "§6Peakeor is amazing!"
         );
     }
 
