@@ -242,12 +242,14 @@ public class TriggerBot extends Module {
 
     private int attackTimer;
     private Entity target;
-    private float smoothYaw;
-    private float smoothPitch;
     private Entity lockedTarget;
     private int reactionTimer;
-    private float driftX;
-    private float driftY;
+    private float aimYaw;
+    private float aimPitch;
+    private float velYaw;
+    private float velPitch;
+    private float noiseYaw;
+    private float noisePitch;
     private float nextSwingCharge = 1f;
     private boolean whiffSwing;
 
@@ -261,8 +263,13 @@ public class TriggerBot extends Module {
         reactionTimer = 0;
         target = null;
         lockedTarget = null;
-        driftX = 0;
-        driftY = 0;
+        aimYaw = mc.player.getYRot();
+        aimPitch = mc.player.getXRot();
+        velYaw = 0;
+        velPitch = 0;
+        noiseYaw = 0;
+        noisePitch = 0;
+        whiffSwing = false;
     }
 
     @Override
@@ -298,7 +305,7 @@ public class TriggerBot extends Module {
         }
 
         if (humanAim.get()) {
-            wanderDrift();
+            updateNoise();
             Vec3 aimPos = predictAimPos(target);
             if (whiffSwing) {
                 Vec3 dir = target.getDeltaMovement();
@@ -306,16 +313,10 @@ public class TriggerBot extends Module {
                     aimPos = target.position().add(dir.normalize().scale(movingWhiff.get()));
                 }
             }
-            double baseYaw = Rotations.getYaw(aimPos);
-            double basePitch = Rotations.getPitch(aimPos);
-            float desiredYaw = Mth.wrapDegrees((float) (baseYaw + driftX));
-            float desiredPitch = Mth.wrapDegrees((float) (basePitch + driftY));
-            float diffYaw = Mth.wrapDegrees(desiredYaw - smoothYaw);
-            float diffPitch = Mth.wrapDegrees(desiredPitch - smoothPitch);
-            float ease = (float) Math.min(1.0, aimSmoothness.get() * 1.6 + 0.2);
-            smoothYaw = Mth.wrapDegrees(smoothYaw + diffYaw * ease);
-            smoothPitch = Mth.wrapDegrees(smoothPitch + diffPitch * ease);
-            Rotations.rotate(smoothYaw, smoothPitch);
+            float targetYaw = Mth.wrapDegrees((float) (Rotations.getYaw(aimPos) + noiseYaw));
+            float targetPitch = Mth.wrapDegrees((float) (Rotations.getPitch(aimPos) + noisePitch));
+            updateSpring(targetYaw, targetPitch);
+            Rotations.rotate(aimYaw, aimPitch);
         } else if (rotate.get()) {
             double yaw = Rotations.getYaw(target) + Utils.random(-aimRadius.get(), aimRadius.get());
             double pitch = Rotations.getPitch(target, Target.Body) + Utils.random(-aimRadius.get(), aimRadius.get());
@@ -360,17 +361,23 @@ public class TriggerBot extends Module {
         return baseDelay.get() + (randomizeDelay.get() ? Utils.random(0, randomDelay.get() + 1) : 0);
     }
 
-    private void wanderDrift() {
-        float limitX = (float) Math.max(0.1, aimDrift.get());
-        float limitY = (float) Math.max(0.1, aimDrift.get() * 0.6);
-        driftX += (float) Utils.random(-0.25, 0.25);
-        driftY += (float) Utils.random(-0.2, 0.2);
-        if (Utils.random(0.0, 1.0) < 0.04) {
-            driftX = (float) Utils.random(-limitX, limitX);
-            driftY = (float) Utils.random(-limitY, limitY);
-        }
-        driftX = Mth.clamp(driftX, -limitX, limitX);
-        driftY = Mth.clamp(driftY, -limitY, limitY);
+    private void updateNoise() {
+        float amp = (float) Math.max(0.05, aimDrift.get());
+        noiseYaw = Mth.clamp(noiseYaw + (float) Utils.random(-0.06, 0.06), -amp * 0.35f, amp * 0.35f);
+        noisePitch = Mth.clamp(noisePitch + (float) Utils.random(-0.04, 0.04), -amp * 0.22f, amp * 0.22f);
+    }
+
+    private void updateSpring(float targetYaw, float targetPitch) {
+        float k = (float) (0.05 + aimSmoothness.get() * 0.12);
+        float damp = (float) (0.82 - aimSmoothness.get() * 0.2);
+        float dy = Mth.wrapDegrees(targetYaw - aimYaw);
+        float dp = Mth.wrapDegrees(targetPitch - aimPitch);
+        velYaw += dy * k;
+        velPitch += dp * k;
+        velYaw *= damp;
+        velPitch *= damp;
+        aimYaw = Mth.wrapDegrees(aimYaw + velYaw);
+        aimPitch = Mth.wrapDegrees(aimPitch + velPitch);
     }
 
     private Vec3 predictAimPos(Entity ent) {
