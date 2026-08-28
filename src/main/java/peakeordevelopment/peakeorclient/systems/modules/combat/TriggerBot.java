@@ -109,6 +109,16 @@ public class TriggerBot extends Module {
         .build()
     );
 
+    private final Setting<Double> leadTime = sgGeneral.add(new DoubleSetting.Builder()
+        .name("lead-time")
+        .description("How far in advance the crosshair predicts the target's position based on relative movement, in ticks. Lets it track moving targets instead of lagging behind.")
+        .defaultValue(3)
+        .range(0, 10)
+        .sliderRange(0, 10)
+        .visible(humanAim::get)
+        .build()
+    );
+
     private final Setting<Double> aimDrift = sgGeneral.add(new DoubleSetting.Builder()
         .name("aim-drift")
         .description("How far the crosshair is allowed to drift and wander off target between corrections.")
@@ -289,24 +299,22 @@ public class TriggerBot extends Module {
 
         if (humanAim.get()) {
             wanderDrift();
-            double baseYaw = Rotations.getYaw(target);
-            double basePitch = Rotations.getPitch(target, Target.Body);
+            Vec3 aimPos = predictAimPos(target);
             if (whiffSwing) {
                 Vec3 dir = target.getDeltaMovement();
                 if (dir.horizontalDistanceSqr() > 1.0E-6) {
-                    Vec3 lead = dir.normalize().scale(movingWhiff.get());
-                    Vec3 pos = target.position().add(lead);
-                    baseYaw = Rotations.getYaw(pos);
-                    basePitch = Rotations.getPitch(pos);
+                    aimPos = target.position().add(dir.normalize().scale(movingWhiff.get()));
                 }
             }
+            double baseYaw = Rotations.getYaw(aimPos);
+            double basePitch = Rotations.getPitch(aimPos);
             float desiredYaw = Mth.wrapDegrees((float) (baseYaw + driftX));
             float desiredPitch = Mth.wrapDegrees((float) (basePitch + driftY));
-            float deltaYaw = Mth.wrapDegrees(desiredYaw - smoothYaw);
-            float deltaPitch = Mth.wrapDegrees(desiredPitch - smoothPitch);
-            float step = (float) Math.min(1.0, aimSmoothness.get() * Utils.random(0.7, 1.3));
-            smoothYaw += Mth.clamp(deltaYaw, -step * 30f, step * 30f) * step;
-            smoothPitch += Mth.clamp(deltaPitch, -step * 30f, step * 30f) * step;
+            float diffYaw = Mth.wrapDegrees(desiredYaw - smoothYaw);
+            float diffPitch = Mth.wrapDegrees(desiredPitch - smoothPitch);
+            float ease = (float) Math.min(1.0, aimSmoothness.get() * 1.6 + 0.2);
+            smoothYaw = Mth.wrapDegrees(smoothYaw + diffYaw * ease);
+            smoothPitch = Mth.wrapDegrees(smoothPitch + diffPitch * ease);
             Rotations.rotate(smoothYaw, smoothPitch);
         } else if (rotate.get()) {
             double yaw = Rotations.getYaw(target) + Utils.random(-aimRadius.get(), aimRadius.get());
@@ -363,6 +371,14 @@ public class TriggerBot extends Module {
         }
         driftX = Mth.clamp(driftX, -limitX, limitX);
         driftY = Mth.clamp(driftY, -limitY, limitY);
+    }
+
+    private Vec3 predictAimPos(Entity ent) {
+        Vec3 relVel = ent.getDeltaMovement().subtract(mc.player.getDeltaMovement());
+        double lead = Math.max(0.0, leadTime.get()) / 20.0;
+        Vec3 base = ent.position();
+        double y = base.y + ent.getBbHeight() / 2;
+        return new Vec3(base.x + relVel.x * lead, y, base.z + relVel.z * lead);
     }
 
     private boolean isMovingAway() {
