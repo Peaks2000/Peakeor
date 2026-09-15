@@ -1,5 +1,5 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
@@ -27,14 +27,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static org.lwjgl.glfw.GLFW.*;
+import static com.mojang.blaze3d.platform.InputConstants.*;
 
 @Mixin(value = Screen.class, priority = 500) // needs to be before baritone
 public abstract class ScreenMixin {
 
     @Unique
     private static boolean peakeor$isArray(int key) {
-        return key == GLFW_KEY_RIGHT || key == GLFW_KEY_LEFT || key == GLFW_KEY_DOWN || key == GLFW_KEY_UP;
+        return key == KEY_RIGHT || key == KEY_LEFT || key == KEY_DOWN || key == KEY_UP;
     }
 
     @Inject(method = "extractTransparentBackground", at = @At("HEAD"), cancellable = true)
@@ -48,9 +48,9 @@ public abstract class ScreenMixin {
         if (event instanceof RunnableClickEvent runnableClickEvent) {
             runnableClickEvent.runnable.run();
             ci.cancel();
-        } else if (event instanceof PeakeorClickEvent peakeorClickEvent && peakeorClickEvent.value.startsWith(Config.get().prefix.get())) {
+        } else if (event instanceof PeakeorClickEvent meteorClickEvent && meteorClickEvent.value.startsWith(Config.get().prefix.get())) {
             try {
-                Commands.dispatch(peakeorClickEvent.value.substring(Config.get().prefix.get().length()));
+                Commands.dispatch(meteorClickEvent.value.substring(Config.get().prefix.get().length()));
             } catch (CommandSyntaxException e) {
                 PeakeorClient.LOG.error("Failed to run command", e);
             } finally {
@@ -63,7 +63,7 @@ public abstract class ScreenMixin {
     private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
         if ((Object) (this) instanceof ChatScreen) return;
         GUIMove guiMove = Modules.get().get(GUIMove.class);
-        if ((guiMove.disableArrows() && peakeor$isArray(event.key())) || (guiMove.disableSpace() && event.key() == GLFW_KEY_SPACE)) {
+        if ((guiMove.disableArrows() && peakeor$isArray(event.key())) || (guiMove.disableSpace() && event.key() == KEY_SPACE)) {
             cir.setReturnValue(true);
         }
     }

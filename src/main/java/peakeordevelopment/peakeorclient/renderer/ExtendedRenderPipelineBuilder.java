@@ -1,11 +1,11 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
 package peakeordevelopment.peakeorclient.renderer;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import peakeordevelopment.peakeorclient.mixininterface.IRenderPipeline;
 import org.jspecify.annotations.NonNull;
 

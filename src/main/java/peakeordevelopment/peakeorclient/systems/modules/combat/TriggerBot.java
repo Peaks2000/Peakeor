@@ -186,7 +186,7 @@ public class TriggerBot extends Module {
         if (attackCooldown.get() && mc.player.getAttackStrengthScale(0.5f) < 1f) return;
 
         mc.gameMode.attack(mc.player, target);
-        mc.player.swing(InteractionHand.MAIN_HAND);
+        mc.player.swing(InteractionHand.MAIN_HAND, mc.player.getMainHandItem().getAttackAnimation(), false);
 
         attackTimer = randomizeDelay.get() ? Utils.random(delayMin.get(), delayMax.get() + 1) : 0;
     }

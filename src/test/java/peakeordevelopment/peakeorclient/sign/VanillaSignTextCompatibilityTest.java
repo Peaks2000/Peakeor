@@ -24,11 +24,13 @@ import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.level.block.entity.SignText;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 import net.minecraft.world.level.storage.TagValueInput;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,17 +51,17 @@ class VanillaSignTextCompatibilityTest {
             lines(Component.literal("back one"), Component.empty(), Component.literal("back three"), Component.empty())
         ), new ProblemReporter.Collector());
 
-        assertEquals("front one", sign.getFrontText().getMessage(0, false).getString());
-        assertEquals("front two", sign.getFrontText().getMessage(1, false).getString());
-        assertEquals("back one", sign.getBackText().getMessage(0, false).getString());
-        assertEquals("back three", sign.getBackText().getMessage(2, false).getString());
+        assertEquals("front one", sign.getText(SignTextSlot.FRONT).getMessages(false).get(0).getString());
+        assertEquals("front two", sign.getText(SignTextSlot.FRONT).getMessages(false).get(1).getString());
+        assertEquals("back one", sign.getText(SignTextSlot.BACK).getMessages(false).get(0).getString());
+        assertEquals("back three", sign.getText(SignTextSlot.BACK).getMessages(false).get(2).getString());
     }
 
     @Test
     void translatedTextRemainsAComponentAndUsesVanillaLanguageResolution() {
         Component translated = Component.translatable("block.minecraft.oak_sign");
         SignBlockEntity sign = loadSign(signTag(lines(translated), emptyLines()), new ProblemReporter.Collector());
-        Component loaded = sign.getFrontText().getMessage(0, false);
+        Component loaded = sign.getText(SignTextSlot.FRONT).getMessages(false).get(0);
 
         TranslatableContents contents = assertInstanceOf(TranslatableContents.class, loaded.getContents());
         assertEquals("block.minecraft.oak_sign", contents.getKey());
@@ -71,7 +73,7 @@ class VanillaSignTextCompatibilityTest {
         String key = "peakeor.test.missing_translation_key";
         SignBlockEntity sign = loadSign(signTag(lines(Component.translatable(key)), emptyLines()), new ProblemReporter.Collector());
 
-        assertEquals(key, sign.getFrontText().getMessage(0, false).getString());
+        assertEquals(key, sign.getText(SignTextSlot.FRONT).getMessages(false).get(0).getString());
     }
 
     @Test
@@ -79,7 +81,7 @@ class VanillaSignTextCompatibilityTest {
         Component unusual = Component.translatableWithFallback("peakeor.test.missing_format", "value=%q", "ignored");
         SignBlockEntity sign = loadSign(signTag(lines(unusual), emptyLines()), new ProblemReporter.Collector());
 
-        assertEquals("value=%q", sign.getFrontText().getMessage(0, false).getString());
+        assertEquals("value=%q", sign.getText(SignTextSlot.FRONT).getMessages(false).get(0).getString());
     }
 
     @Test
@@ -92,23 +94,23 @@ class VanillaSignTextCompatibilityTest {
 
         SignBlockEntity sign = loadSign(root, problems);
 
-        assertTrue(Arrays.stream(sign.getFrontText().getMessages(false)).allMatch(component -> component.getString().isEmpty()));
-        assertEquals("valid back", sign.getBackText().getMessage(0, false).getString());
+        assertTrue(sign.getText(SignTextSlot.FRONT).getMessages(false).stream().allMatch(component -> component.getString().isEmpty()));
+        assertEquals("valid back", sign.getText(SignTextSlot.BACK).getMessages(false).get(0).getString());
         assertFalse(problems.isEmpty());
     }
 
     @Test
     void malformedComponentMakesVanillaRejectThatSignTextPayload() {
         CompoundTag root = signTag(emptyLines(), lines(Component.literal("valid back")));
-        CompoundTag malformed = encode(new SignText());
+        CompoundTag malformed = encode(SignText.EMPTY);
         malformed.getListOrEmpty("messages").set(0, IntTag.valueOf(42));
         root.put("front_text", malformed);
         ProblemReporter.Collector problems = new ProblemReporter.Collector();
 
         SignBlockEntity sign = loadSign(root, problems);
 
-        assertTrue(Arrays.stream(sign.getFrontText().getMessages(false)).allMatch(component -> component.getString().isEmpty()));
-        assertEquals("valid back", sign.getBackText().getMessage(0, false).getString());
+        assertTrue(sign.getText(SignTextSlot.FRONT).getMessages(false).stream().allMatch(component -> component.getString().isEmpty()));
+        assertEquals("valid back", sign.getText(SignTextSlot.BACK).getMessages(false).get(0).getString());
         assertFalse(problems.isEmpty());
     }
 
@@ -120,7 +122,7 @@ class VanillaSignTextCompatibilityTest {
         Component nbtComponent = ComponentSerialization.CODEC.parse(NbtOps.INSTANCE, encodedComponent).getOrThrow();
 
         SignBlockEntity sign = loadSign(signTag(lines(nbtComponent), emptyLines()), new ProblemReporter.Collector());
-        Component loaded = sign.getFrontText().getMessage(0, false);
+        Component loaded = sign.getText(SignTextSlot.FRONT).getMessages(false).get(0);
 
         assertInstanceOf(NbtContents.class, loaded.getContents());
         assertEquals("", loaded.getString());
@@ -130,8 +132,8 @@ class VanillaSignTextCompatibilityTest {
     void absentTextDefaultsToFourEmptyLinesOnBothSides() {
         SignBlockEntity sign = loadSign(new CompoundTag(), new ProblemReporter.Collector());
 
-        assertTrue(Arrays.stream(sign.getFrontText().getMessages(false)).allMatch(component -> component.getString().isEmpty()));
-        assertTrue(Arrays.stream(sign.getBackText().getMessages(false)).allMatch(component -> component.getString().isEmpty()));
+        assertTrue(sign.getText(SignTextSlot.FRONT).getMessages(false).stream().allMatch(component -> component.getString().isEmpty()));
+        assertTrue(sign.getText(SignTextSlot.BACK).getMessages(false).stream().allMatch(component -> component.getString().isEmpty()));
     }
 
     @Test
@@ -139,19 +141,19 @@ class VanillaSignTextCompatibilityTest {
         String oversized = "x".repeat(50_000);
         SignBlockEntity sign = loadSign(signTag(lines(Component.literal(oversized)), emptyLines()), new ProblemReporter.Collector());
 
-        assertEquals(oversized, sign.getFrontText().getMessage(0, false).getString());
+        assertEquals(oversized, sign.getText(SignTextSlot.FRONT).getMessages(false).get(0).getString());
     }
 
     @Test
     void signEditorPacketKeepsVanillaPlainTextAndSelectedSide() {
         String translatedLine = Component.translatable("block.minecraft.oak_sign").getString();
-        ServerboundSignUpdatePacket front = new ServerboundSignUpdatePacket(BlockPos.ZERO, true, translatedLine, "", "", "");
-        ServerboundSignUpdatePacket back = new ServerboundSignUpdatePacket(BlockPos.ZERO, false, translatedLine, "", "", "");
+        ServerboundSignUpdatePacket front = new ServerboundSignUpdatePacket(BlockPos.ZERO, List.of(translatedLine, "", "", ""), SignTextSlot.FRONT);
+        ServerboundSignUpdatePacket back = new ServerboundSignUpdatePacket(BlockPos.ZERO, List.of(translatedLine, "", "", ""), SignTextSlot.BACK);
 
-        assertTrue(front.isFrontText());
-        assertFalse(back.isFrontText());
-        assertEquals("Oak Sign", front.getLines()[0]);
-        assertEquals("Oak Sign", back.getLines()[0]);
+        assertTrue(front.slot() == SignTextSlot.FRONT);
+        assertFalse(back.slot() == SignTextSlot.FRONT);
+        assertEquals("Oak Sign", front.lines().get(0));
+        assertEquals("Oak Sign", back.lines().get(0));
     }
 
     private static SignBlockEntity loadSign(CompoundTag tag, ProblemReporter reporter) {
@@ -162,13 +164,13 @@ class VanillaSignTextCompatibilityTest {
 
     private static CompoundTag signTag(Component[] front, Component[] back) {
         CompoundTag root = new CompoundTag();
-        root.put("front_text", encode(new SignText(front, front.clone(), net.minecraft.world.item.DyeColor.BLACK, false)));
-        root.put("back_text", encode(new SignText(back, back.clone(), net.minecraft.world.item.DyeColor.BLACK, false)));
+        root.put("front_text", encode(new SignText(Arrays.asList(front), Arrays.asList(front), net.minecraft.world.item.DyeColor.BLACK, false)));
+        root.put("back_text", encode(new SignText(Arrays.asList(back), Arrays.asList(back), net.minecraft.world.item.DyeColor.BLACK, false)));
         return root;
     }
 
     private static CompoundTag encode(SignText text) {
-        DataResult<Tag> encoded = SignText.DIRECT_CODEC.encodeStart(NbtOps.INSTANCE, text);
+        DataResult<Tag> encoded = SignText.CODEC.encodeStart(NbtOps.INSTANCE, text);
         return assertInstanceOf(CompoundTag.class, encoded.getOrThrow());
     }
 

@@ -5,8 +5,8 @@
 
 package peakeordevelopment.peakeorclient.renderer;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import peakeordevelopment.peakeorclient.utils.render.color.Color;
 import peakeordevelopment.peakeorclient.utils.world.Dir;
 import net.minecraft.client.Minecraft;

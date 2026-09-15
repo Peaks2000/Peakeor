@@ -13,9 +13,9 @@ import peakeordevelopment.peakeorclient.gui.widgets.pressable.WPressable;
 import peakeordevelopment.peakeorclient.systems.modules.Module;
 import net.minecraft.util.Mth;
 
+import com.mojang.blaze3d.platform.InputConstants;
+
 import static peakeordevelopment.peakeorclient.PeakeorClient.mc;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT;
 
 public class WPeakeorModule extends WPressable implements PeakeorWidget {
     private final Module module;
@@ -58,8 +58,8 @@ public class WPeakeorModule extends WPressable implements PeakeorWidget {
 
     @Override
     protected void onPressed(int button) {
-        if (button == GLFW_MOUSE_BUTTON_LEFT) module.toggle();
-        else if (button == GLFW_MOUSE_BUTTON_RIGHT) mc.gui.setScreen(theme.moduleScreen(module));
+        if (button == InputConstants.MOUSE_BUTTON_LEFT) module.toggle();
+        else if (button == InputConstants.MOUSE_BUTTON_RIGHT) mc.gui.setScreen(theme.moduleScreen(module));
     }
 
     @Override

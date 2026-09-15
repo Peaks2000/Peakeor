@@ -1,5 +1,5 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
@@ -20,6 +20,7 @@ import net.minecraft.util.Crypt;
 import org.meteordev.starscript.Script;
 
 import java.time.Instant;
+import java.util.Optional;
 
 public class SayCommand extends Command {
     public SayCommand() {
@@ -41,7 +42,7 @@ public class SayCommand extends Command {
                     ClientPacketListener handler = mc.getConnection();
                     LastSeenMessagesTracker.Update lastSeenMessages = ((ClientPacketListenerAccessor) handler).peakeor$getLastSeenMessages().generateAndApplyUpdate();
                     MessageSignature messageSignatureData = ((ClientPacketListenerAccessor) handler).peakeor$getSignedMessageEncoder().pack(new SignedMessageBody(message, instant, l, lastSeenMessages.lastSeen()));
-                    handler.send(new ServerboundChatPacket(message, instant, l, messageSignatureData, lastSeenMessages.update()));
+                    handler.send(new ServerboundChatPacket(message, instant, l, Optional.ofNullable(messageSignatureData), lastSeenMessages.update()));
                 }
             }
 

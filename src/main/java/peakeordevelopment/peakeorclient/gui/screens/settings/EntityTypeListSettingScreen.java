@@ -5,7 +5,7 @@
 
 package peakeordevelopment.peakeorclient.gui.screens.settings;
 
-import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.renderpearl.api.textures.FilterMode;
 import peakeordevelopment.peakeorclient.gui.GuiTheme;
 import peakeordevelopment.peakeorclient.gui.WindowScreen;
 import peakeordevelopment.peakeorclient.gui.utils.Cell;

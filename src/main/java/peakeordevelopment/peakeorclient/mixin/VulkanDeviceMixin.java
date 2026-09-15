@@ -1,12 +1,12 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
 package peakeordevelopment.peakeorclient.mixin;
 
-import com.mojang.blaze3d.systems.RenderPassBackend;
-import com.mojang.blaze3d.vulkan.VulkanDevice;
+import com.mojang.renderpearl.backend.api.RenderPassBackend;
+import com.mojang.renderpearl.backend.vulkan.VulkanDevice;
 import peakeordevelopment.peakeorclient.mixininterface.IGpuDevice;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

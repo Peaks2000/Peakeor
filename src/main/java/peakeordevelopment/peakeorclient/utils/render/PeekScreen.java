@@ -5,6 +5,7 @@
 
 package peakeordevelopment.peakeorclient.utils.render;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import peakeordevelopment.peakeorclient.systems.modules.Modules;
 import peakeordevelopment.peakeorclient.systems.modules.render.BetterTooltips;
 import peakeordevelopment.peakeorclient.utils.Utils;
@@ -20,7 +21,6 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.ShulkerBoxMenu;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.NonNull;
-import org.lwjgl.glfw.GLFW;
 
 import static peakeordevelopment.peakeorclient.PeakeorClient.mc;
 
@@ -61,7 +61,7 @@ public class PeekScreen extends ShulkerBoxScreen {
             }
         }
 
-        if (input.key() == GLFW.GLFW_KEY_ESCAPE || mc.options.keyInventory.matches(input)) {
+        if (input.key() == InputConstants.KEY_ESCAPE || mc.options.keyInventory.matches(input)) {
             onClose();
             return true;
         }

@@ -1,5 +1,5 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
@@ -8,13 +8,12 @@ package peakeordevelopment.peakeorclient.utils.misc.input;
 import com.mojang.blaze3d.platform.InputConstants;
 import peakeordevelopment.peakeorclient.PeakeorClient;
 import net.minecraft.client.KeyMapping;
-import org.lwjgl.glfw.GLFW;
 
 public class KeyBinds {
     private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(PeakeorClient.identifier("peakeor-client"));
 
-    public static KeyMapping OPEN_GUI = new KeyMapping("key.peakeor-client.open-gui", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT, CATEGORY);
-    public static KeyMapping OPEN_COMMANDS = new KeyMapping("key.peakeor-client.open-commands", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_PERIOD, CATEGORY);
+    public static KeyMapping OPEN_GUI = new KeyMapping("key.peakeor-client.open-gui", InputConstants.Type.KEYBOARD, InputConstants.KEY_RSHIFT, CATEGORY);
+    public static KeyMapping OPEN_COMMANDS = new KeyMapping("key.peakeor-client.open-commands", InputConstants.Type.KEYBOARD, InputConstants.KEY_PERIOD, CATEGORY);
 
     private KeyBinds() {
     }

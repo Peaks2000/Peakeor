@@ -1,10 +1,11 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
 package peakeordevelopment.peakeorclient.systems.modules.render;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import peakeordevelopment.peakeorclient.PeakeorClient;
 import peakeordevelopment.peakeorclient.events.peakeor.KeyInputEvent;
 import peakeordevelopment.peakeorclient.events.peakeor.MouseScrollEvent;
@@ -19,7 +20,6 @@ import peakeordevelopment.peakeorclient.systems.modules.Categories;
 import peakeordevelopment.peakeorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.util.Mth;
-import org.lwjgl.glfw.GLFW;
 
 public class Zoom extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -109,7 +109,7 @@ public class Zoom extends Module {
 
     @EventHandler
     public void onKeyPressed(KeyInputEvent event) {
-        if (event.key() != GLFW.GLFW_KEY_F1) return;
+        if (event.key() != InputConstants.KEY_F1) return;
         hudManualToggled = true;
     }
 

@@ -1,10 +1,11 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
 package peakeordevelopment.peakeorclient.systems.modules.render;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import peakeordevelopment.peakeorclient.events.game.ChangePerspectiveEvent;
 import peakeordevelopment.peakeorclient.events.peakeor.MouseScrollEvent;
 import peakeordevelopment.peakeorclient.settings.*;
@@ -13,7 +14,6 @@ import peakeordevelopment.peakeorclient.systems.modules.Module;
 import peakeordevelopment.peakeorclient.utils.misc.Keybind;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.CameraType;
-import org.lwjgl.glfw.GLFW;
 
 public class CameraTweaks extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -50,7 +50,7 @@ public class CameraTweaks extends Module {
         .name("bind")
         .description("Binds camera distance scrolling to a key.")
         .visible(scrollingEnabled::get)
-        .defaultValue(Keybind.fromKey(GLFW.GLFW_KEY_LEFT_ALT))
+        .defaultValue(Keybind.fromKey(InputConstants.KEY_LALT))
         .build()
     );
 
