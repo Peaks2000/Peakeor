@@ -38,10 +38,9 @@ Bug reports and suggestions should be made in this repo's [issue tracker](https:
 Please provide as much information as you can to best help us understand your issue and give a better chance of it being resolved.
 
 ## Credits
-[Peaks2000](https://github.com/Peaks2000) for the Peakeor rebrand, customization, and maintenance
+[Peaks2000](https://github.com/Peaks2000) for stealing rebranding some orange customization and maintenance 
 
 [GmailKeeper](https://github.com/Peaks2000) for being goat and urm being the first user maybe prolly not but maybe!
-
 
 [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) for the original project
 
