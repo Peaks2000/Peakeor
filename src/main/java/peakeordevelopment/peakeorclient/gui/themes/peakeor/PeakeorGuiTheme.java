@@ -86,6 +86,13 @@ public class PeakeorGuiTheme extends GuiTheme {
         .build()
     );
 
+    public final Setting<Boolean> modulesHelpText = sgGeneral.add(new BoolSetting.Builder()
+        .name("modules-help-text")
+        .description("Toggle help text in the modules screen.")
+        .defaultValue(true)
+        .build()
+    );
+
     // Colors
 
     public final Setting<SettingColor> accentColor = color("accent", "Main color of the GUI.", new SettingColor(242, 140, 40));
@@ -388,6 +395,11 @@ public class PeakeorGuiTheme extends GuiTheme {
     @Override
     public boolean hideHUD() {
         return hideHUD.get();
+    }
+
+    @Override
+    public boolean modulesHelpText() {
+        return modulesHelpText.get();
     }
 
     public class ThreeStateColorSetting {

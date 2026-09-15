@@ -1,8 +1,8 @@
 package peakeordevelopment.peakeorclient.utils.render;
 
-import com.mojang.blaze3d.GpuFormat;
 import com.mojang.blaze3d.platform.TextureUtil;
-import com.mojang.blaze3d.textures.FilterMode;
+import com.mojang.renderpearl.api.GpuFormat;
+import com.mojang.renderpearl.api.textures.FilterMode;
 import peakeordevelopment.peakeorclient.PeakeorClient;
 import peakeordevelopment.peakeorclient.renderer.Texture;
 import peakeordevelopment.peakeorclient.utils.network.Http;

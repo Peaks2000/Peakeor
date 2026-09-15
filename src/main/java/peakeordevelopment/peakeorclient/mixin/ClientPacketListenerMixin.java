@@ -1,5 +1,5 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
@@ -92,7 +92,7 @@ public abstract class ClientPacketListenerMixin extends ClientCommonPacketListen
 
     @Inject(method = "handleLevelChunkWithLight", at = @At("TAIL"))
     private void onHandleLevelChunkWithLight(ClientboundLevelChunkWithLightPacket packet, CallbackInfo ci) {
-        LevelChunk chunk = minecraft.level.getChunk(packet.getX(), packet.getZ());
+        LevelChunk chunk = minecraft.level.getChunk(packet.x(), packet.z());
         PeakeorClient.EVENT_BUS.post(new ChunkDataEvent(chunk));
     }
 
@@ -106,9 +106,9 @@ public abstract class ClientPacketListenerMixin extends ClientCommonPacketListen
         PeakeorClient.EVENT_BUS.post(InventoryEvent.get(packet));
     }
 
-    @Inject(method = "handleRemoveEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/game/ClientboundRemoveEntitiesPacket;getEntityIds()Lit/unimi/dsi/fastutil/ints/IntList;"))
+    @Inject(method = "handleRemoveEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/game/ClientboundRemoveEntitiesPacket;entityIds()Lit/unimi/dsi/fastutil/ints/IntList;"))
     private void onHandleRemoveEntities(ClientboundRemoveEntitiesPacket packet, CallbackInfo ci) {
-        for (int id : packet.getEntityIds()) {
+        for (int id : packet.entityIds()) {
             PeakeorClient.EVENT_BUS.post(EntityDestroyEvent.get(minecraft.level.getEntity(id)));
         }
     }
@@ -116,7 +116,7 @@ public abstract class ClientPacketListenerMixin extends ClientCommonPacketListen
     @Inject(method = "handleExplosion", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V", shift = At.Shift.AFTER))
     private void onHandleExplosionVelocity(ClientboundExplodePacket packet, CallbackInfo ci) {
         Velocity velocity = Modules.get().get(Velocity.class);
-        if (!velocity.shouldModifyExplosions()) return;
+        if (!velocity.explosions.get()) return;
 
         IClientboundExplodePacket explosionPacket = (IClientboundExplodePacket) (Object) packet;
         explosionPacket.peakeor$setVelocityX((float) (packet.playerKnockback().orElse(Vec3.ZERO).x * velocity.getHorizontal(velocity.explosionsHorizontal)));
@@ -159,7 +159,7 @@ public abstract class ClientPacketListenerMixin extends ClientCommonPacketListen
     }
 
     @Inject(method = "sendChat", at = @At("HEAD"), cancellable = true)
-    private void onSendChatMessage(String message, CallbackInfo ci, @Local(argsOnly = true, name = "content") LocalRef<String> messageRef) {
+    private void onSendChatMessage(String message, CallbackInfo ci, @Local(argsOnly = true) LocalRef<String> messageRef) {
         if (!message.startsWith(Config.get().prefix.get()) && !(BaritoneUtils.IS_AVAILABLE && message.startsWith(BaritoneUtils.getPrefix()))) {
             SendMessageEvent event = PeakeorClient.EVENT_BUS.post(SendMessageEvent.get(message));
 

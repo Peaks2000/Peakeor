@@ -6,7 +6,7 @@
 package peakeordevelopment.peakeorclient.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.renderpearl.api.textures.GpuTexture;
 import peakeordevelopment.peakeorclient.systems.modules.Modules;
 import peakeordevelopment.peakeorclient.systems.modules.render.Fullbright;
 import peakeordevelopment.peakeorclient.systems.modules.render.Xray;

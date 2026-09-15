@@ -1,5 +1,5 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
@@ -22,15 +22,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.WritableBookContent;
 import net.minecraft.world.item.component.WrittenBookContent;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.system.MemoryUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -38,16 +34,6 @@ public class BookBot extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
     private final File DEFAULT_FILE = new File(PeakeorClient.FOLDER, "bookbot.txt");
-    private final PointerBuffer filters;
-
-    {
-        filters = BufferUtils.createPointerBuffer(1);
-
-        ByteBuffer txtFilter = MemoryUtil.memASCII("*.txt");
-
-        filters.put(txtFilter);
-        filters.rewind();
-    }
 
     private final Setting<Mode> mode = sgGeneral.add(new EnumSetting.Builder<Mode>()
         .name("mode")
@@ -60,7 +46,7 @@ public class BookBot extends Module {
         .name("file")
         .description("Which file to use.")
         .defaultValue(DEFAULT_FILE)
-        .filter(filters)
+        .filter("*.txt")
         .visible(() -> mode.get() == Mode.File)
         .build()
     );
@@ -112,7 +98,7 @@ public class BookBot extends Module {
     private final Setting<String> name = sgGeneral.add(new StringSetting.Builder()
         .name("name")
         .description("The name you want to give your books.")
-        .defaultValue("Peakeor is amazing!")
+        .defaultValue("Meteor on Crack!")
         .visible(sign::get)
         .build()
     );

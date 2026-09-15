@@ -1,20 +1,17 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
 package peakeordevelopment.peakeorclient.systems.modules.world;
 
 import peakeordevelopment.peakeorclient.mixininterface.IAbstractFurnaceMenu;
-import peakeordevelopment.peakeorclient.settings.BoolSetting;
-import peakeordevelopment.peakeorclient.settings.IntSetting;
-import peakeordevelopment.peakeorclient.settings.ItemListSetting;
-import peakeordevelopment.peakeorclient.settings.Setting;
-import peakeordevelopment.peakeorclient.settings.SettingGroup;
+import peakeordevelopment.peakeorclient.settings.*;
 import peakeordevelopment.peakeorclient.systems.modules.Categories;
 import peakeordevelopment.peakeorclient.systems.modules.Module;
 import peakeordevelopment.peakeorclient.utils.Utils;
 import peakeordevelopment.peakeorclient.utils.player.InvUtils;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.inventory.AbstractFurnaceMenu;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.item.Item;
@@ -74,7 +71,7 @@ public class AutoSmelter extends Module {
     private boolean fuelItemFilter(Item item) {
         if (!Utils.canUpdate()) return false;
 
-        return mc.getConnection().fuelValues().fuelItems().contains(item);
+        return item.getDefaultInstance().has(DataComponents.COOKING_FUEL);
     }
 
     private boolean smeltableItemFilter(Item item) {

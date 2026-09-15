@@ -396,7 +396,7 @@ public class TriggerBot extends Module {
 
     private void swing() {
         mc.gameMode.attack(mc.player, target);
-        mc.player.swing(InteractionHand.MAIN_HAND);
+        mc.player.swing(InteractionHand.MAIN_HAND, mc.player.getMainHandItem().getAttackAnimation(), false);
     }
 
     private boolean entityCheck(Entity entity) {

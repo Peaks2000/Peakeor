@@ -1,10 +1,11 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
 package peakeordevelopment.peakeorclient.settings;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import peakeordevelopment.peakeorclient.PeakeorClient;
 import peakeordevelopment.peakeorclient.events.peakeor.KeyInputEvent;
 import peakeordevelopment.peakeorclient.events.peakeor.MouseClickEvent;
@@ -14,7 +15,6 @@ import peakeordevelopment.peakeorclient.utils.misc.input.KeyAction;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
 import net.minecraft.nbt.CompoundTag;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.function.Consumer;
 
@@ -32,7 +32,7 @@ public class KeybindSetting extends Setting<Keybind> {
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onKeyBinding(KeyInputEvent event) {
         if (widget == null) return;
-        if (event.action == KeyAction.Press && event.key() == GLFW.GLFW_KEY_ESCAPE && widget.onClear()) event.cancel();
+        if (event.action == KeyAction.Press && event.key() == InputConstants.KEY_ESCAPE && widget.onClear()) event.cancel();
         else if (event.action == KeyAction.Release && widget.onAction(true, event.key(), event.modifiers()))
             event.cancel();
     }

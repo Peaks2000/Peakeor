@@ -1,5 +1,5 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
@@ -77,10 +77,10 @@ public abstract class ChatComponentMixin implements IChatHud {
     private GuiMessage.Line onAddMessage_modifyGuiMessageLine(GuiMessage.Line line, @Local(name = "i") int i) {
         IChatListener handler = (IChatListener) minecraft.gui.chatListener();
 
-        IGuiMessageVisible peakeorLine = (IGuiMessageVisible) (Object) line;
+        IGuiMessageVisible meteorLine = (IGuiMessageVisible) (Object) line;
 
-        peakeorLine.peakeor$setSender(handler.peakeor$getSender());
-        peakeorLine.peakeor$setStartOfEntry(i == 0);
+        meteorLine.peakeor$setSender(handler.peakeor$getSender());
+        meteorLine.peakeor$setStartOfEntry(i == 0);
 
         return line;
     }
@@ -94,7 +94,7 @@ public abstract class ChatComponentMixin implements IChatHud {
     }
 
     @Inject(at = @At("HEAD"), method = "addMessage", cancellable = true)
-    private void onAddMessage(Component message, MessageSignature signature, GuiMessageSource source, GuiMessageTag indicator, CallbackInfo ci, @Local(argsOnly = true, name = "contents") LocalRef<Component> contents, @Local(argsOnly = true, name = "tag") LocalRef<GuiMessageTag> tag) {
+    private void onAddMessage(Component message, MessageSignature signature, GuiMessageSource source, GuiMessageTag indicator, CallbackInfo ci, @Local(argsOnly = true) LocalRef<Component> contents, @Local(argsOnly = true) LocalRef<GuiMessageTag> tag) {
         ReceiveMessageEvent event = PeakeorClient.EVENT_BUS.post(ReceiveMessageEvent.get(message, indicator, nextId));
 
         if (event.isCancelled()) ci.cancel();

@@ -1,14 +1,14 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
 package peakeordevelopment.peakeorclient.systems.accounts;
 
 import com.mojang.authlib.minecraft.UserApiService;
-import com.mojang.authlib.yggdrasil.FriendsService;
-import com.mojang.authlib.yggdrasil.ServicesKeyType;
-import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
+import com.mojang.authlib.services.FriendsService;
+import com.mojang.authlib.services.MinecraftServicesDiscoveryService;
+import com.mojang.authlib.services.ServicesKeyType;
 import peakeordevelopment.peakeorclient.mixin.FileCacheAccessor;
 import peakeordevelopment.peakeorclient.mixin.MinecraftAccessor;
 import peakeordevelopment.peakeorclient.mixin.SkinManagerAccessor;
@@ -47,7 +47,7 @@ public abstract class Account<T extends Account<?>> implements ISerializable<T> 
     public abstract boolean fetchInfo();
 
     public boolean login() {
-        YggdrasilAuthenticationService authenticationService = new YggdrasilAuthenticationService(mc.getProxy());
+        MinecraftServicesDiscoveryService authenticationService = MinecraftServicesDiscoveryService.create(mc.getProxy());
         applyLoginEnvironment(authenticationService);
 
         return true;
@@ -70,7 +70,7 @@ public abstract class Account<T extends Account<?>> implements ISerializable<T> 
         MinecraftAccessor mca = (MinecraftAccessor) mc;
         mca.peakeor$setUser(session);
 
-        YggdrasilAuthenticationService yggdrasilAuthenticationService = new YggdrasilAuthenticationService(mc.getProxy());
+        MinecraftServicesDiscoveryService yggdrasilAuthenticationService = MinecraftServicesDiscoveryService.create(mc.getProxy());
 
         UserApiService apiService = yggdrasilAuthenticationService.createUserApiService(session.getAccessToken());
         FriendsService friendsService = yggdrasilAuthenticationService.createFriendsService(session.getAccessToken());
@@ -82,7 +82,7 @@ public abstract class Account<T extends Account<?>> implements ISerializable<T> 
         mca.peakeor$setProfileFuture(CompletableFuture.supplyAsync(() -> mc.services().sessionService().fetchProfile(mc.getUser().getProfileId(), true), Util.ioPool()));
     }
 
-    public static void applyLoginEnvironment(YggdrasilAuthenticationService authService) {
+    public static void applyLoginEnvironment(MinecraftServicesDiscoveryService authService) {
         MinecraftAccessor mca = (MinecraftAccessor) mc;
         SignatureValidator.from(authService.getServicesKeySet(), ServicesKeyType.PROFILE_KEY);
         SkinManager.TextureCache skinCache = ((SkinManagerAccessor) mc.getSkinManager()).peakeor$getSkinTextures();

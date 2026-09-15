@@ -1,5 +1,5 @@
 /*
- * This file is part of the Meteor Client distribution (https://github.com/MeteorDevelopment/meteor-client).
+ * This file is part of the Meteor Client distribution (https://github.com/PeakeorDevelopment/peakeor-client).
  * Copyright (c) Meteor Development.
  */
 
@@ -8,6 +8,7 @@ package peakeordevelopment.peakeorclient.systems.modules.world;
 import baritone.api.BaritoneAPI;
 import baritone.api.IBaritone;
 import baritone.api.utils.BetterBlockPos;
+import com.mojang.blaze3d.platform.InputConstants;
 import peakeordevelopment.peakeorclient.events.peakeor.KeyInputEvent;
 import peakeordevelopment.peakeorclient.events.peakeor.MouseClickEvent;
 import peakeordevelopment.peakeorclient.events.render.Render3DEvent;
@@ -20,7 +21,6 @@ import peakeordevelopment.peakeorclient.utils.misc.input.KeyAction;
 import peakeordevelopment.peakeorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.world.phys.BlockHitResult;
-import org.lwjgl.glfw.GLFW;
 
 public class Excavator extends Module {
     private final IBaritone baritone = BaritoneAPI.getProvider().getPrimaryBaritone();
@@ -31,7 +31,7 @@ public class Excavator extends Module {
     private final Setting<Keybind> selectionBind = sgGeneral.add(new KeybindSetting.Builder()
         .name("selection-bind")
         .description("Bind to draw selection.")
-        .defaultValue(Keybind.fromButton(GLFW.GLFW_MOUSE_BUTTON_RIGHT))
+        .defaultValue(Keybind.fromButton(InputConstants.MOUSE_BUTTON_RIGHT))
         .build()
     );
 

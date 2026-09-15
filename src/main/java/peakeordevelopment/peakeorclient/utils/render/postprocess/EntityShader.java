@@ -1,6 +1,6 @@
 package peakeordevelopment.peakeorclient.utils.render.postprocess;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import peakeordevelopment.peakeorclient.mixininterface.ILevelRenderer;
 import net.minecraft.world.entity.Entity;
 
