@@ -40,6 +40,9 @@ Please provide as much information as you can to best help us understand your is
 ## Credits
 [Peaks2000](https://github.com/Peaks2000) for the Peakeor rebrand, customization, and maintenance
 
+[GmailKeeper](https://github.com/Peaks2000) for being goat and urm being the first user maybe prolly not but maybe!
+
+
 [Meteor Client](https://github.com/MeteorDevelopment/meteor-client) for the original project
 
 [Cabaletta](https://github.com/cabaletta) and [WagYourTail](https://github.com/wagyourtail) for [Baritone](https://github.com/cabaletta/baritone)
