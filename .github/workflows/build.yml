@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - master
+      - peakeor
 
 jobs:
   build:
@@ -30,3 +31,10 @@ jobs:
 
       - name: Build
         run: ./gradlew build -Pcommit=${{ github.sha }} -Pbuild_number=${{ github.run_number }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: peakeor-client
+          path: build/libs/*.jar
+          if-no-files-found: error

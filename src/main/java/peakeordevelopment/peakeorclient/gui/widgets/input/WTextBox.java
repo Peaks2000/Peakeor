@@ -716,6 +716,10 @@ public abstract class WTextBox extends WWidget {
 
         this.focused = focused;
 
+        // SDL only sends character events while native text input is active.
+        // Use this widget as the owner so another field's blur cannot stop it.
+        mc.textInputManager().onTextInputFocusChange(this, focused);
+
         resetSelection();
 
         if (wasJustFocused) onCursorChanged();

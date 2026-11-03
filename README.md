@@ -22,7 +22,7 @@
 - Run `./gradlew build`
 
 ### Installation
-Install Fabric Loader for the supported Minecraft version, then place the built JAR from `build/libs` in your `mods` folder.
+Install Fabric Loader for Minecraft 26.3, then place the built JAR from `build/libs` in your `mods` folder.
 
 ## Contributions
 We will review and help with all reasonable pull requests as long as the guidelines below are met.
