@@ -87,6 +87,7 @@ dependencies {
     compileOnly(libs.modmenu)
 
     // Tests
+    testImplementation(libs.sodium) { isTransitive = false }
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -167,6 +168,7 @@ fun toMinecraftCompat(version: String): String {
 tasks {
     test {
         useJUnitPlatform()
+        testLogging { events("passed", "failed", "skipped") }
     }
 
     processResources {
