@@ -47,6 +47,8 @@ public class Keybind implements ISerializable<Keybind>, ICopyable<Keybind> {
         private static EnumSet<Modifier> fromRawValue(int modifiers) {
             var result = EnumSet.noneOf(Modifier.class);
             for (var mod : VALUES) {
+                // SDL includes toggled lock states on every key event.
+                if (mod == CAPS_LOCK || mod == NUM_LOCK) continue;
                 if ((mod.mask & modifiers) != 0) result.add(mod);
             }
             return result;
@@ -247,7 +249,9 @@ public class Keybind implements ISerializable<Keybind>, ICopyable<Keybind> {
             ListTag modifiersTag = tag.getListOrEmpty("modifiers");
             for (int i = 0; i < modifiersTag.size(); i++) {
                 try {
-                    modifiers.add(Modifier.valueOf(modifiersTag.getStringOr(i, "")));
+                    Modifier modifier = Modifier.valueOf(modifiersTag.getStringOr(i, ""));
+                    // Repair binds saved with incidental lock-key state.
+                    if (modifier != Modifier.CAPS_LOCK && modifier != Modifier.NUM_LOCK) modifiers.add(modifier);
                 } catch (IllegalArgumentException ignored) {}
             }
         } else {
