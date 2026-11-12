@@ -51,13 +51,17 @@ public abstract class Module implements ISerializable<Module>, Comparable<Module
     public boolean favorite = false;
 
     public Module(Category category, String name, String description, String... aliases) {
+        this(category, name, description, aliases, Utils.nameToTitle(name));
+    }
+
+    protected Module(Category category, String name, String description, String[] aliases, String title) {
         if (name.contains(" "))
             PeakeorClient.LOG.warn("Module '{}' contains invalid characters in its name making it incompatible with Peakeor Client commands.", name);
 
         this.mc = Minecraft.getInstance();
         this.category = category;
         this.name = name;
-        this.title = Utils.nameToTitle(name);
+        this.title = title;
         this.description = description;
         this.aliases = aliases;
         this.color = Color.fromHsv(Utils.random(0.0, 360.0), 0.35, 1);

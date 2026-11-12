@@ -11,6 +11,10 @@ on:
         description: Build suffix for the release JAR
         required: true
         type: string
+      client_version:
+        description: Release version (defaults to Minecraft version and build suffix)
+        required: false
+        type: string
   push:
     branches:
       - master
@@ -36,7 +40,9 @@ jobs:
           java-version: '25'
 
       - name: Build
-        run: ./gradlew build -Pcommit=${{ github.sha }} -Pbuild_number=${{ inputs.build_number || github.run_number }}
+        env:
+          CLIENT_VERSION: ${{ inputs.client_version }}
+        run: ./gradlew build -Pcommit=${{ github.sha }} -Pbuild_number=${{ inputs.build_number || github.run_number }} -Pclient_version="$CLIENT_VERSION"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7

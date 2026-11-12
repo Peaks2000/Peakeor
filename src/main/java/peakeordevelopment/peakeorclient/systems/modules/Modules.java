@@ -124,6 +124,9 @@ public class Modules extends System<Modules> {
 
     @Nullable
     public Module get(String name) {
+        // Preserve commands and saved configurations using the former name.
+        if ("walterwalk".equalsIgnoreCase(name)) name = "water-walk";
+
         for (Module module : moduleInstances.values()) {
             if (module.name.equalsIgnoreCase(name)) return module;
         }

@@ -171,7 +171,7 @@ public class WalterWalk extends Module {
     public boolean isInBubbleColumn = false;
 
     public WalterWalk() {
-        super(Categories.Movement, "walterwalk", "");
+        super(Categories.Movement, "water-walk", "", new String[] { "walterwalk" }, "Water walk");
     }
 
     @Override

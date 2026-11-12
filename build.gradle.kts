@@ -11,7 +11,9 @@ base {
     group = mavenGroup
 
     val suffix = providers.gradleProperty("build_number").getOrElse("local")
-    version = "${libs.versions.minecraft.get()}-$suffix"
+    version = providers.gradleProperty("client_version")
+        .filter { it.isNotBlank() }
+        .getOrElse("${libs.versions.minecraft.get()}-$suffix")
 }
 
 repositories {

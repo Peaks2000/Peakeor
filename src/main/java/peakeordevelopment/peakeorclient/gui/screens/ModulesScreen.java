@@ -15,6 +15,7 @@ import peakeordevelopment.peakeorclient.gui.widgets.containers.WSection;
 import peakeordevelopment.peakeorclient.gui.widgets.containers.WVerticalList;
 import peakeordevelopment.peakeorclient.gui.widgets.containers.WWindow;
 import peakeordevelopment.peakeorclient.gui.widgets.input.WTextBox;
+import peakeordevelopment.peakeorclient.gui.widgets.pressable.WButton;
 import peakeordevelopment.peakeorclient.systems.config.Config;
 import peakeordevelopment.peakeorclient.systems.modules.Category;
 import peakeordevelopment.peakeorclient.systems.modules.Module;
@@ -46,6 +47,10 @@ public class ModulesScreen extends TabScreen {
     @Override
     public void initWidgets() {
         controller = add(new WCategoryController()).widget();
+
+        WButton panic = add(theme.button("Panic")).pad(4).bottom().right().widget();
+        panic.tooltip = "Disable all modules";
+        panic.action = () -> Modules.get().disableAll();
 
         // Help
         if (theme.modulesHelpText()) {
