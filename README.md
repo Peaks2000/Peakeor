@@ -15,7 +15,10 @@
     <img src="https://img.shields.io/endpoint?url=https://ghloc.vercel.app/api/Peaks2000/peakeor-client/badge?filter=.java$&label=lines%20of%20code&color=blue" alt="GitHub lines of code"/>
 </div>
 
-## Usage
+## Features
+- Panic button
+- Fixes to NameTags like being able to remove the item nametags
+- Privacy settings to help mitigate bans (still at your own risk a new method of detection might work. THIS MOD IS NOT MADE FOR HACKING!)
 
 ### Building
 - Clone this repository
