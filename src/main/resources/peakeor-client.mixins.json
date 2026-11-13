@@ -79,6 +79,8 @@
     "DirectionAccessor",
     "DisconnectedScreenMixin",
     "DownloadedPackSourceMixin",
+    "PackConfirmScreenMixin",
+    "ResourcePackPendingRequestAccessor",
     "DownloadQueueMixin",
     "EnchantTableRendererMixin",
     "EndCrystalModelMixin",
