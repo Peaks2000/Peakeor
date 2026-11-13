@@ -9,6 +9,13 @@ PeaksManager reads this file to find public Fabric JARs. It selects the most rec
   "releases": [
     {
       "minecraft": "~26.3",
+      "version": "5.1.5.1",
+      "publishedAt": "2026-11-13T22:50:13Z",
+      "url": "https://github.com/Peaks2000/Peakeor/releases/download/v5.1.5.1/peakeor-client-5.1.5.1.jar",
+      "sha256": "e4388cb62944cf6c0e9b4d141c87dbb679809b289e86d6bf0fa60237aaf56180"
+    },
+    {
+      "minecraft": "~26.3",
       "version": "5.1.5",
       "publishedAt": "2026-11-13T22:13:04Z",
       "url": "https://github.com/Peaks2000/Peakeor/releases/download/v5.1.5/peakeor-client-5.1.5.jar",
