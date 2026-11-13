@@ -18,7 +18,6 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import peakeordevelopment.peakeorclient.utils.network.ResourcePackUtils;
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket;
@@ -116,7 +115,9 @@ public class ServerSpoof extends Module {
         if (!(event.packet instanceof ClientboundResourcePackPushPacket packet)) return;
 
         event.cancel();
-        ResourcePackUtils.bypass(packet.id(), event.connection::send);
+        event.connection.send(new ServerboundResourcePackPacket(packet.id(), ServerboundResourcePackPacket.Action.ACCEPTED));
+        event.connection.send(new ServerboundResourcePackPacket(packet.id(), ServerboundResourcePackPacket.Action.DOWNLOADED));
+        event.connection.send(new ServerboundResourcePackPacket(packet.id(), ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED));
 
         msg = Component.literal("This server has ");
         msg.append(packet.required() ? "a required " : "an optional ").append("resource pack. ");

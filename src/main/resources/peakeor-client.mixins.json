@@ -181,7 +181,7 @@
     "ServerboundMovePlayerPacketAccessor",
     "ServerboundMovePlayerPacketMixin",
     "ServerPlayerMixin",
-    "RenderPipelinesMixin",
+    "ShaderManagerMixin",
     "ShulkerBoxMenuAccessor",
     "SkinManagerAccessor",
     "SkyRendererMixin",
