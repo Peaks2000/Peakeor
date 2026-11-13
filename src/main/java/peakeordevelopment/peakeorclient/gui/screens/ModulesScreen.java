@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.mojang.blaze3d.platform.InputConstants.*;
+import static peakeordevelopment.peakeorclient.PeakeorClient.mc;
 import static peakeordevelopment.peakeorclient.utils.Utils.getWindowHeight;
 import static peakeordevelopment.peakeorclient.utils.Utils.getWindowWidth;
 
@@ -49,8 +50,9 @@ public class ModulesScreen extends TabScreen {
         controller = add(new WCategoryController()).widget();
 
         WButton panic = add(theme.button("Panic")).pad(4).bottom().right().widget();
-        panic.tooltip = "Disable all modules";
+        panic.tooltip = "Left click to disable all modules. Right click to configure a keybind.";
         panic.action = () -> Modules.get().disableAll();
+        panic.rightClickAction = () -> mc.gui.setScreen(new PanicScreen(theme));
 
         // Help
         if (theme.modulesHelpText()) {

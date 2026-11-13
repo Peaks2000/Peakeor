@@ -42,7 +42,12 @@ jobs:
       - name: Build
         env:
           CLIENT_VERSION: ${{ inputs.client_version }}
-        run: ./gradlew build -Pcommit=${{ github.sha }} -Pbuild_number=${{ inputs.build_number || github.run_number }} -Pclient_version="$CLIENT_VERSION"
+        run: |
+          args=(-Pcommit=${{ github.sha }} -Pbuild_number=${{ inputs.build_number || github.run_number }})
+          if [[ -n "$CLIENT_VERSION" ]]; then
+            args+=("-Pclient_version=$CLIENT_VERSION")
+          fi
+          ./gradlew build "${args[@]}"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7

@@ -13,6 +13,7 @@ import static com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT;
 
 public abstract class WPressable extends WWidget {
     public Runnable action;
+    public Runnable rightClickAction;
 
     protected boolean pressed;
 
@@ -26,8 +27,12 @@ public abstract class WPressable extends WWidget {
     @Override
     public boolean onMouseReleased(MouseButtonEvent click) {
         if (pressed) {
-            onPressed(click.button());
-            if (action != null) action.run();
+            if (click.button() == MOUSE_BUTTON_RIGHT && rightClickAction != null) {
+                rightClickAction.run();
+            } else {
+                onPressed(click.button());
+                if (action != null) action.run();
+            }
 
             pressed = false;
         }

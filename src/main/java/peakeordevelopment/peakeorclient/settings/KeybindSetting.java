@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 
 public class KeybindSetting extends Setting<Keybind> {
     private final Runnable action;
+    private int capturedMouseButton = -1;
     public WKeybind widget;
 
     public KeybindSetting(String name, String description, Keybind defaultValue, Consumer<Keybind> onChanged, Consumer<Setting<Keybind>> onModuleActivated, IVisible visible, Runnable action) {
@@ -39,8 +40,10 @@ public class KeybindSetting extends Setting<Keybind> {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     private void onMouseClickBinding(MouseClickEvent event) {
-        if (event.action == KeyAction.Press && widget != null && widget.onAction(false, event.button(), 0))
+        if (event.action == KeyAction.Press && widget != null && widget.onAction(false, event.button(), 0)) {
+            capturedMouseButton = event.button();
             event.cancel();
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -52,6 +55,10 @@ public class KeybindSetting extends Setting<Keybind> {
 
     @EventHandler(priority = EventPriority.HIGH)
     private void onMouseClick(MouseClickEvent event) {
+        if (event.action == KeyAction.Release && event.button() == capturedMouseButton) {
+            capturedMouseButton = -1;
+            return;
+        }
         if (event.action == KeyAction.Release && get().matches(event.input) && (module == null || module.isActive()) && action != null) {
             action.run();
         }

@@ -100,7 +100,7 @@ public abstract class BookViewScreenMixin extends Screen {
         }
         if (itemStack.getItem() != Items.WRITTEN_BOOK) return;
 
-        ItemStack book = itemStack; // Fuck you Java
+        ItemStack book = itemStack;
         InteractionHand hand2 = hand; // Honestly
 
         addRenderableWidget(

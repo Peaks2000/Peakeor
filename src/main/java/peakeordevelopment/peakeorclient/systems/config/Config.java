@@ -12,6 +12,7 @@ import peakeordevelopment.peakeorclient.settings.*;
 import peakeordevelopment.peakeorclient.systems.System;
 import peakeordevelopment.peakeorclient.systems.Systems;
 import peakeordevelopment.peakeorclient.systems.modules.Module;
+import peakeordevelopment.peakeorclient.systems.modules.Modules;
 import peakeordevelopment.peakeorclient.utils.render.color.SettingColor;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -132,6 +133,13 @@ public class Config extends System<Config> {
     );
 
     // Modules
+
+    public final KeybindSetting panicKeybind = sgModules.add(new KeybindSetting.Builder()
+        .name("panic-keybind")
+        .description("Disable all modules.")
+        .action(() -> Modules.get().disableAll())
+        .build()
+    );
 
     public final Setting<List<Module>> hiddenModules = sgModules.add(new ModuleListSetting.Builder()
         .name("hidden-modules")
