@@ -10,6 +10,7 @@
 - Panic button
 - Fixes to NameTags like being able to remove the item nametags
 - Privacy settings to help mitigate bans (still at your own risk a new method of detection might work. THIS MOD IS NOT MADE FOR HACKING!)
+- really really bad triggerbot.
 
 ### Building
 - Clone this repository
